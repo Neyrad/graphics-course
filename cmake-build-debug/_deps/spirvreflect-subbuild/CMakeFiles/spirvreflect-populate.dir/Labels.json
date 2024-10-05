@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"spirvreflect-populate"
+		],
+		"name" : "spirvreflect-populate"
+	}
+}

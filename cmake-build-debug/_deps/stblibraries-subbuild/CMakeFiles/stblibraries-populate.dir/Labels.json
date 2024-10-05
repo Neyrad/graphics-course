@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/CMakeFiles/stblibraries-populate"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/CMakeFiles/stblibraries-populate.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/CMakeFiles/stblibraries-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild/stblibraries-populate-prefix/src/stblibraries-populate-stamp/stblibraries-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"stblibraries-populate"
+		],
+		"name" : "stblibraries-populate"
+	}
+}

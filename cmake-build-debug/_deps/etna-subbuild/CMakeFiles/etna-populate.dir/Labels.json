@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/CMakeFiles/etna-populate"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/CMakeFiles/etna-populate.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/CMakeFiles/etna-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-subbuild/etna-populate-prefix/src/etna-populate-stamp/etna-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"etna-populate"
+		],
+		"name" : "etna-populate"
+	}
+}
