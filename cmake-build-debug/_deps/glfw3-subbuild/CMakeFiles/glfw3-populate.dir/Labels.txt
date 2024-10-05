@@ -1,0 +1,14 @@
+# Target labels
+ glfw3-populate
+# Source files and their labels
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/CMakeFiles/glfw3-populate
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/CMakeFiles/glfw3-populate.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/CMakeFiles/glfw3-populate-complete.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-build.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-configure.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-download.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-install.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-mkdir.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-patch.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-test.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/glfw3-populate-prefix/src/glfw3-populate-stamp/glfw3-populate-update.rule

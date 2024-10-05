@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/etna-build/etna",
+		"source" : "cmake-build-debug/_deps/etna-src/etna"
+	}
+}

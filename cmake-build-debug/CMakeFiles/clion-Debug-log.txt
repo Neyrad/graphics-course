@@ -1,0 +1,80 @@
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=D:/Programs/CLion/JetBrains/CLion2024.1.3/bin/ninja/win/x64/ninja.exe -G Ninja -S C:\Users\79014\CLionProjects\graphics-course -B C:\Users\79014\CLionProjects\graphics-course\cmake-build-debug
+-- CPM: Adding package glfw3@3.4 (3.4)
+-- Including Win32 support
+-- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
+-- Documentation generation requires Doxygen 1.9.8 or later
+-- Found Vulkan: D:/Programs/Vulkan/Lib/vulkan-1.lib (found suitable version "1.3.290", minimum required is "1.3.275") found components: glslc glslangValidator
+-- CPM: Adding package ImGui@1.91.0 (v1.91.0)
+-- Populating imgui
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/imgui-subbuild
+[0/7] Performing update step for 'imgui-populate'
+-- Already at requested tag: v1.91.0
+[1/7] No patch step for 'imgui-populate'
+[3/7] No configure step for 'imgui-populate'
+[4/7] No build step for 'imgui-populate'
+[5/7] No install step for 'imgui-populate'
+[6/7] No test step for 'imgui-populate'
+[7/7] Completed 'imgui-populate'
+-- CPM: Adding package glm@ (master)
+-- GLM: Version 1.0.2
+-- GLM: Build with C++ features auto detection
+-- CPM: Adding package tinygltf@2.9.2 (v2.9.2)
+-- CPM: Adding package etna@1.3.0 (v1.3.0)
+-- Found Vulkan: D:/Programs/Vulkan/Lib/vulkan-1.lib (found suitable version "1.3.290", minimum required is "1.3.275") found components: glslc glslangValidator
+-- CPM: Adding package VulkanMemoryAllocator@0 (b8e57472fffa3bd6e0a0b675f4615bf0a823ec4d)
+-- CPM: Adding package StbLibraries@0 (f75e8d1cad7d90d72ef7a4661f1b994ef78b4e31)
+-- Populating stblibraries
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-subbuild
+[0/7] Performing update step for 'stblibraries-populate'
+-- Already at requested ref: f75e8d1cad7d90d72ef7a4661f1b994ef78b4e31
+[1/7] No patch step for 'stblibraries-populate'
+[3/7] No configure step for 'stblibraries-populate'
+[4/7] No build step for 'stblibraries-populate'
+[5/7] No install step for 'stblibraries-populate'
+[6/7] No test step for 'stblibraries-populate'
+[7/7] Completed 'stblibraries-populate'
+-- CPM: Adding package SpirvReflect@ (vulkan-sdk-1.3.290)
+-- CPM: Adding package fmt@10.2.1 (10.2.1)
+-- Version: 10.2.1
+-- Build type: Debug
+-- CPM: Adding package spdlog@1.13.0 (v1.13.0)
+-- Build spdlog: 1.13.0
+-- Build type: Debug
+-- CPM: Adding package tracy@0.11.1 (v0.11.1)
+Parsing public/common/TracyVersion.hpp file
+VERSION 0.11.1
+-- TRACY_ENABLE: OFF
+-- TRACY_ON_DEMAND: ON
+-- TRACY_CALLSTACK: OFF
+-- TRACY_NO_CALLSTACK: OFF
+-- TRACY_NO_CALLSTACK_INLINES: OFF
+-- TRACY_ONLY_LOCALHOST: OFF
+-- TRACY_NO_BROADCAST: OFF
+-- TRACY_ONLY_IPV4: OFF
+-- TRACY_NO_CODE_TRANSFER: OFF
+-- TRACY_NO_CONTEXT_SWITCH: OFF
+-- TRACY_NO_EXIT: OFF
+-- TRACY_NO_SAMPLING: OFF
+-- TRACY_NO_VERIFY: OFF
+-- TRACY_NO_VSYNC_CAPTURE: OFF
+-- TRACY_NO_FRAME_IMAGE: OFF
+-- TRACY_NO_SYSTEM_TRACING: OFF
+-- TRACY_PATCHABLE_NOPSLEDS: OFF
+-- TRACY_DELAYED_INIT: OFF
+-- TRACY_MANUAL_LIFETIME: OFF
+-- TRACY_FIBERS: OFF
+-- TRACY_NO_CRASH_HANDLER: OFF
+-- TRACY_TIMER_FALLBACK: OFF
+-- TRACY_LIBUNWIND_BACKTRACE: OFF
+-- TRACY_SYMBOL_OFFLINE_RESOLVE: OFF
+-- TRACY_LIBBACKTRACE_ELF_DYNLOAD_SUPPORT: OFF
+-- TRACY_VERBOSE: OFF
+-- TRACY_DEMANGLE: OFF
+-- CPM: Adding package function2@4.2.4 (4.2.4)
+-- Configuring done (26.7s)
+-- Generating done (0.7s)
+-- Build files have been written to: C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug
