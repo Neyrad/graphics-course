@@ -9,7 +9,6 @@
 
 #include "wsi/OsWindowingManager.hpp"
 
-
 class App
 {
 public:
