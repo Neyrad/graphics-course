@@ -4,6 +4,7 @@
 #include <etna/GlobalContext.hpp>
 #include <etna/PipelineManager.hpp>
 
+
 App::App()
   : resolution{1280, 720}
   , useVsync{true}
@@ -72,16 +73,8 @@ App::App()
   // How it is actually performed is not trivial, but we can skip this for now.
   commandManager = etna::get_context().createPerFrameCmdMgr();
 
+
   // TODO: Initialize any additional resources you require here!
-  etna::create_program("local_shadertoy1", {LOCAL_SHADERTOY_SHADERS_ROOT "toy.comp.spv"});
-  pipeline = etna::get_context().getPipelineManager().createComputePipeline("local_shadertoy1", {});
-  sampler = etna::Sampler(etna::Sampler::CreateInfo{.name = "Saturns"});
-  shader_image = etna::get_context().createImage(etna::Image::CreateInfo{
-    .extent = vk::Extent3D{resolution.x, resolution.y, 1},
-    .name = "resultImage",
-    .format = vk::Format::eR8G8B8A8Snorm,
-    .imageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
-  });
 }
 
 App::~App()
@@ -144,82 +137,9 @@ void App::drawFrame()
       // and blit/copy operations.
       etna::flush_barriers(currentCmdBuf);
 
-      auto set = etna::create_descriptor_set(
-        etna::get_shader_program("local_shadertoy1").getDescriptorLayoutId(0),
-        currentCmdBuf,
-        {
-          etna::Binding{0, shader_image.genBinding(sampler.get(), vk::ImageLayout::eGeneral)},
-        });
-      vk::DescriptorSet vkSet = set.getVkSet();
 
-      currentCmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline.getVkPipeline());
-      currentCmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, pipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
+      // TODO: Record your commands here!
 
-      params.resolution = resolution;
-      if (osWindow.get()->mouse[MouseButton::mbLeft] == ButtonState::High) {
-        mouse_pos = osWindow.get()->mouse.freePos;
-      }
-      params.mouse_pos = mouse_pos;
-      params.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - init_time).count() / 1000.0;
-      currentCmdBuf.pushConstants(
-        pipeline.getVkPipelineLayout(),
-        vk::ShaderStageFlagBits::eCompute,
-        0,
-        sizeof(Params),
-        &params
-      );
-
-      etna::set_state(
-        currentCmdBuf,
-        shader_image.get(),
-        vk::PipelineStageFlagBits2::eComputeShader,
-        vk::AccessFlagBits2::eShaderWrite,
-        vk::ImageLayout::eGeneral,
-        vk::ImageAspectFlagBits::eColor);
-      etna::flush_barriers(currentCmdBuf);
-
-      currentCmdBuf.dispatch(resolution.x / 32, resolution.y / 32, 1);
-
-      etna::set_state(
-        currentCmdBuf,
-        shader_image.get(),
-        vk::PipelineStageFlagBits2::eComputeShader,
-        vk::AccessFlagBits2::eShaderWrite,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::ImageAspectFlagBits::eColor);
-      etna::flush_barriers(currentCmdBuf);
-
-      etna::set_state(
-        currentCmdBuf,
-        shader_image.get(),
-        vk::PipelineStageFlagBits2::eTransfer,
-        vk::AccessFlagBits2::eTransferWrite,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::ImageAspectFlagBits::eColor);
-      etna::flush_barriers(currentCmdBuf);
-
-      VkImageBlit imageBlit{};
-      imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-      imageBlit.srcSubresource.layerCount = 1;
-      imageBlit.srcOffsets[1].x = resolution.x;
-      imageBlit.srcOffsets[1].y = resolution.y;
-      imageBlit.srcOffsets[1].z = 1;
-      imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-      imageBlit.dstSubresource.layerCount = 1;
-      imageBlit.dstOffsets[1].x = resolution.x;
-      imageBlit.dstOffsets[1].y = resolution.y;
-      imageBlit.dstOffsets[1].z = 1;
-
-      vkCmdBlitImage(
-        currentCmdBuf,
-        shader_image.get(),
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        backbuffer,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &imageBlit,
-        VK_FILTER_LINEAR);
-      etna::flush_barriers(currentCmdBuf);
 
       // At the end of "rendering", we are required to change how the pixels of the
       // swpchain image are laid out in memory to something that is appropriate

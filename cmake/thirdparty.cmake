@@ -12,15 +12,6 @@ CPMAddPackage(
     "GLFW_BULID_DOCS OFF"
 )
 
-# Find Vulkan SDK
-if (NOT DEFINED ENV{VULKAN_SDK})
-message(FATAL_ERROR "VULKAN_SDK environment variable not found.")
-endif()
-
-# Set Vulkan include directories and library paths
-set(Vulkan_INCLUDE_DIR $ENV{VULKAN_SDK}/Include)
-set(Vulkan_LIBRARIES $ENV{VULKAN_SDK}/Lib/vulkan-1.lib)
-
 # Cross-platform 3D graphics
 find_package(Vulkan 1.3.275 REQUIRED)
 

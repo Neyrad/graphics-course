@@ -1,3 +1,0 @@
-C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/CMakeFiles/glfw3-populate.dir
-C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/CMakeFiles/edit_cache.dir
-C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-subbuild/CMakeFiles/rebuild_cache.dir

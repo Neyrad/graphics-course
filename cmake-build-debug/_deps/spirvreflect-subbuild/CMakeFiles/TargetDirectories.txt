@@ -1,3 +1,0 @@
-C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate.dir
-C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/edit_cache.dir
-C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/rebuild_cache.dir
