@@ -1,0 +1,282 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "common/gui/libgui.a"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"target_link_libraries",
+			"add_compile_options",
+			"include",
+			"add_compile_definitions",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"common/gui/CMakeLists.txt",
+			"cmake/common.cmake",
+			"common/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 6,
+				"parent" : 0
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 2,
+				"line" : 1,
+				"parent" : 3
+			},
+			{
+				"file" : 1,
+				"parent" : 4
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 17,
+				"parent" : 5
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 20,
+				"parent" : 5
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 4,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -std=gnu++20 -fdiagnostics-color=always"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-Wall"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-Wextra"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-Werror"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-pedantic"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "ETNA_DEBUG=1"
+				},
+				{
+					"backtrace" : 7,
+					"define" : "GRAPHICS_COURSE_RESOURCES_ROOT=\"C:/Users/79014/CLionProjects/graphics-course/resources\""
+				},
+				{
+					"backtrace" : 7,
+					"define" : "GRAPHICS_COURSE_ROOT=\"C:/Users/79014/CLionProjects/graphics-course\""
+				},
+				{
+					"backtrace" : 2,
+					"define" : "IMGUI_USER_CONFIG=\"C:/Users/79014/CLionProjects/graphics-course/common/gui/ImGuiConfig.hpp\""
+				},
+				{
+					"backtrace" : 2,
+					"define" : "SPDLOG_COMPILED_LIB"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "SPDLOG_FMT_EXTERNAL"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "TRACY_ON_DEMAND"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "TRACY_VK_USE_SYMBOL_TABLE"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VMA_DYNAMIC_VULKAN_FUNCTIONS=1"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VMA_STATIC_VULKAN_FUNCTIONS=0"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VULKAN_HPP_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/common/gui/.."
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/imgui-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-src/etna/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spdlog-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "D:/Programs/Vulkan/Include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/vulkanmemoryallocator-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/fmt-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tracy-src/public"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					2
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "glfw::@5274351989dc3159e019"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "DearImGui::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "spirv-reflect-static::@b7bd0d9f699017d9f94a"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "spdlog::@eb35cfce7893ccfeff1e"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "fmt::@976f4f0bee90b99ecdb6"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "TracyClient::@5312c6e87bd9d431bdc8"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "etna::@f7385bf3a30646d87ce7"
+		}
+	],
+	"id" : "gui::@712f04e2f041922b4917",
+	"name" : "gui",
+	"nameOnDisk" : "libgui.a",
+	"paths" : 
+	{
+		"build" : "common/gui",
+		"source" : "common/gui"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "common/gui/ImGuiRenderer.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

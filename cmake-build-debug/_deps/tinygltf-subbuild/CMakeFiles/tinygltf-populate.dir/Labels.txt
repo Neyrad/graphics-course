@@ -1,0 +1,14 @@
+# Target labels
+ tinygltf-populate
+# Source files and their labels
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/CMakeFiles/tinygltf-populate
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/CMakeFiles/tinygltf-populate.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/CMakeFiles/tinygltf-populate-complete.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-build.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-configure.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-download.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-install.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-mkdir.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-patch.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-test.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-subbuild/tinygltf-populate-prefix/src/tinygltf-populate-stamp/tinygltf-populate-update.rule

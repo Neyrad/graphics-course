@@ -1,0 +1,14 @@
+# Target labels
+ spirvreflect-populate
+# Source files and their labels
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/CMakeFiles/spirvreflect-populate-complete.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-build.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-configure.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-download.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-install.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-mkdir.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-patch.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-test.rule
+C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-subbuild/spirvreflect-populate-prefix/src/spirvreflect-populate-stamp/spirvreflect-populate-update.rule

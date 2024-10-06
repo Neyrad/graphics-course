@@ -1,0 +1,570 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "samples/shadowmap/shadowmap.exe"
+		},
+		{
+			"path" : "samples/shadowmap/shadowmap.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"target_link_libraries",
+			"add_dependencies",
+			"target_add_shaders",
+			"add_compile_options",
+			"include",
+			"add_compile_definitions"
+		],
+		"files" : 
+		[
+			"samples/shadowmap/CMakeLists.txt",
+			"common/gui/CMakeLists.txt",
+			"common/scene/CMakeLists.txt",
+			"cmake-build-debug/_deps/etna-src/etna/CMakeLists.txt",
+			"cmake-build-debug/_deps/spdlog-src/CMakeLists.txt",
+			"cmake-build-debug/_deps/tracy-src/CMakeLists.txt",
+			"cmake/shaders.cmake",
+			"cmake/common.cmake",
+			"samples/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 9,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 6,
+				"parent" : 3
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 1,
+				"file" : 2,
+				"line" : 6,
+				"parent" : 5
+			},
+			{
+				"file" : 3
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 28,
+				"parent" : 7
+			},
+			{
+				"file" : 4
+			},
+			{
+				"command" : 1,
+				"file" : 4,
+				"line" : 221,
+				"parent" : 9
+			},
+			{
+				"file" : 5
+			},
+			{
+				"command" : 1,
+				"file" : 5,
+				"line" : 42,
+				"parent" : 11
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 6,
+				"line" : 74,
+				"parent" : 13
+			},
+			{
+				"file" : 8
+			},
+			{
+				"command" : 5,
+				"file" : 8,
+				"line" : 1,
+				"parent" : 15
+			},
+			{
+				"file" : 7,
+				"parent" : 16
+			},
+			{
+				"command" : 4,
+				"file" : 7,
+				"line" : 17,
+				"parent" : 17
+			},
+			{
+				"command" : 6,
+				"file" : 7,
+				"line" : 20,
+				"parent" : 17
+			},
+			{
+				"command" : 6,
+				"file" : 6,
+				"line" : 75,
+				"parent" : 13
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -std=gnu++20 -fdiagnostics-color=always"
+				},
+				{
+					"backtrace" : 18,
+					"fragment" : "-Wall"
+				},
+				{
+					"backtrace" : 18,
+					"fragment" : "-Wextra"
+				},
+				{
+					"backtrace" : 18,
+					"fragment" : "-Werror"
+				},
+				{
+					"backtrace" : 18,
+					"fragment" : "-pedantic"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "ETNA_DEBUG=1"
+				},
+				{
+					"backtrace" : 19,
+					"define" : "GRAPHICS_COURSE_RESOURCES_ROOT=\"C:/Users/79014/CLionProjects/graphics-course/resources\""
+				},
+				{
+					"backtrace" : 19,
+					"define" : "GRAPHICS_COURSE_ROOT=\"C:/Users/79014/CLionProjects/graphics-course\""
+				},
+				{
+					"backtrace" : 2,
+					"define" : "IMGUI_USER_CONFIG=\"C:/Users/79014/CLionProjects/graphics-course/common/gui/ImGuiConfig.hpp\""
+				},
+				{
+					"backtrace" : 20,
+					"define" : "PRIVATE"
+				},
+				{
+					"backtrace" : 20,
+					"define" : "SHADOWMAP_SHADERS_ROOT=\"C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/samples/shadowmap/shaders/\""
+				},
+				{
+					"backtrace" : 2,
+					"define" : "SPDLOG_COMPILED_LIB"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "SPDLOG_FMT_EXTERNAL"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "TRACY_ON_DEMAND"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "TRACY_VK_USE_SYMBOL_TABLE"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VMA_DYNAMIC_VULKAN_FUNCTIONS=1"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VMA_STATIC_VULKAN_FUNCTIONS=0"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VULKAN_HPP_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS"
+				},
+				{
+					"backtrace" : 20,
+					"define" : "shadowmap"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glfw3-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/etna-src/etna/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/stblibraries-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spirvreflect-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/spdlog-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/common/wsi/.."
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/common/gui/.."
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/imgui-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/common/scene/.."
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tinygltf-src"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/common/render_utils/.."
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/common/render_utils/shaders"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "D:/Programs/Vulkan/Include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/vulkanmemoryallocator-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/fmt-src/include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/tracy-src/public"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/glm-src"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug/_deps/function2-src/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2,
+					2
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "tinygltf::@cf7fec98cfc62fa92173"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "glm::@ce54d98d7b326a3e12a8"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "glfw::@5274351989dc3159e019"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "DearImGui::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "spirv-reflect-static::@b7bd0d9f699017d9f94a"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "spdlog::@eb35cfce7893ccfeff1e"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "fmt::@976f4f0bee90b99ecdb6"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "TracyClient::@5312c6e87bd9d431bdc8"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "etna::@f7385bf3a30646d87ce7"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "wsi::@6c6c175b3b49336bd230"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gui::@712f04e2f041922b4917"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "scene::@477d1650c630a3731224"
+		},
+		{
+			"backtrace" : 14,
+			"id" : "shadowmap_shaders::@cffadbb82de7b5226a9e"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "render_utils::@280122fb02937b14172d"
+		}
+	],
+	"id" : "shadowmap::@cffadbb82de7b5226a9e",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-g",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps\\glfw3-build\\src\\libglfw3.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps\\etna-build\\etna\\libetna.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps\\glm-build\\glm\\libglm.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "common\\wsi\\libwsi.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "common\\gui\\libgui.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "common\\scene\\libscene.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "common\\render_utils\\librender_utils.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "libDearImGui.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps\\glfw3-build\\src\\libglfw3.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps\\glm-build\\glm\\libglm.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "_deps\\tinygltf-build\\libtinygltf.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps\\etna-build\\etna\\libetna.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 8,
+				"fragment" : "D:\\Programs\\Vulkan\\Lib\\vulkan-1.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 8,
+				"fragment" : "_deps\\spirvreflect-build\\libspirv-reflect-static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 8,
+				"fragment" : "_deps\\spdlog-build\\libspdlogd.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 10,
+				"fragment" : "_deps\\fmt-build\\libfmtd.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 8,
+				"fragment" : "_deps\\tracy-build\\libTracyClient.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 12,
+				"fragment" : "-lws2_32",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 12,
+				"fragment" : "-ldbghelp",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "shadowmap",
+	"nameOnDisk" : "shadowmap.exe",
+	"paths" : 
+	{
+		"build" : "samples/shadowmap",
+		"source" : "samples/shadowmap"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "samples/shadowmap/main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "samples/shadowmap/Renderer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "samples/shadowmap/WorldRenderer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "samples/shadowmap/App.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

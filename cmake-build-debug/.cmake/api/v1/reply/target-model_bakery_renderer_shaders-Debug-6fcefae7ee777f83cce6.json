@@ -1,0 +1,88 @@
+{
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"target_add_shaders"
+		],
+		"files" : 
+		[
+			"cmake/shaders.cmake",
+			"tasks/model_bakery/renderer/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 73,
+				"parent" : 1
+			}
+		]
+	},
+	"id" : "model_bakery_renderer_shaders::@bd87e962cbc5708a946e",
+	"name" : "model_bakery_renderer_shaders",
+	"paths" : 
+	{
+		"build" : "tasks/model_bakery/renderer",
+		"source" : "tasks/model_bakery/renderer"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				3
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/tasks/model_bakery/renderer/CMakeFiles/model_bakery_renderer_shaders",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/tasks/model_bakery/renderer/CMakeFiles/model_bakery_renderer_shaders.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/tasks/model_bakery/renderer/shaders/static_mesh.frag.spv.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/tasks/model_bakery/renderer/shaders/static_mesh.vert.spv.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

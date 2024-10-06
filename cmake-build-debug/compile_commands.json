@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/79014/CLionProjects/graphics-course/cmake-build-debug",
+  "command": "D:\\Programs\\CLion\\JetBrains\\CLion2024.1.3\\bin\\mingw\\bin\\g++.exe -g -std=c++11 -fdiagnostics-color=always -o _deps\\tinygltf-build\\CMakeFiles\\tinygltf.dir\\tiny_gltf.cc.obj -c C:\\Users\\79014\\CLionProjects\\graphics-course\\cmake-build-debug\\_deps\\tinygltf-src\\tiny_gltf.cc",
+  "file": "C:\\Users\\79014\\CLionProjects\\graphics-course\\cmake-build-debug\\_deps\\tinygltf-src\\tiny_gltf.cc",
+  "output": "_deps\\tinygltf-build\\CMakeFiles\\tinygltf.dir\\tiny_gltf.cc.obj"
+}
+]
