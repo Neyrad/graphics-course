@@ -26,7 +26,7 @@ App::App()
     std::vector<const char*> deviceExtensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     etna::initialize(etna::InitParams{
-      .applicationName = "Local Shadertoy",
+      .applicationName = "IMGUI",
       .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
       .instanceExtensions = instanceExtensions,
       .deviceExtensions = deviceExtensions,
@@ -56,8 +56,8 @@ App::App()
 
   etna::create_program(
     "texture",
-    {LOCAL_SHADERTOY2_SHADERS_ROOT "texture.frag.spv",
-     LOCAL_SHADERTOY2_SHADERS_ROOT "toy.vert.spv"});
+    {IMGUI_SHADERS_ROOT "texture.frag.spv",
+     IMGUI_SHADERS_ROOT "toy.vert.spv"});
 
   texturePipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "texture",
@@ -76,13 +76,13 @@ App::App()
     .imageUsage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment});
 
   etna::create_program(
-    "ls2",
-    {LOCAL_SHADERTOY2_SHADERS_ROOT "toy.frag.spv", LOCAL_SHADERTOY2_SHADERS_ROOT "toy.vert.spv"});
+    "imgui",
+    {IMGUI_SHADERS_ROOT "toy.frag.spv", IMGUI_SHADERS_ROOT "toy.vert.spv"});
 
   std::vector<vk::Format> CurrentFormat;
   CurrentFormat.emplace_back(vkWindow->getCurrentFormat());
   graphicsPipeline = context->getPipelineManager().createGraphicsPipeline(
-    "ls2",
+    "imgui",
     etna::GraphicsPipeline::CreateInfo{
       .fragmentShaderOutput = {.colorAttachmentFormats = CurrentFormat}});
 
@@ -145,7 +145,7 @@ void App::processInput()
   if (osWindow.get()->mouse[MouseButton::mbRight] == ButtonState::Rising)
   {
     const int retval = std::system("cd " GRAPHICS_COURSE_ROOT "/../build"
-                                   " && cmake --build . --target local_shadertoy2_shaders");
+                                   " && cmake --build . --target imgui_shaders");
     if (retval != 0)
       spdlog::warn("Shader recompilation returned a non-zero return code!");
     else
@@ -247,10 +247,10 @@ void App::drawFrame()
         etna::RenderTargetState state{
           currentCmdBuf, {{}, {resolution.x, resolution.y}}, {{backbuffer, backbufferView}}, {}};
 
-        auto ls2Info = etna::get_shader_program("ls2");
+        auto imguiInfo = etna::get_shader_program("imgui");
 
         auto set = etna::create_descriptor_set(
-          ls2Info.getDescriptorLayoutId(0),
+          imguiInfo.getDescriptorLayoutId(0),
           currentCmdBuf,
           {etna::Binding{
              0, image.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)},
