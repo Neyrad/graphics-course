@@ -11,6 +11,7 @@
 #include <etna/GlobalContext.hpp>
 #include <etna/Sampler.hpp>
 
+#include "Renderer.hpp"
 
 class App
 {
@@ -26,25 +27,13 @@ private:
 
 private:
   OsWindowingManager windowing;
-  std::unique_ptr<OsWindow> osWindow;
+  std::unique_ptr<OsWindow> mainWindow;
 
-  glm::uvec2 resolution;
   bool useVsync;
   std::chrono::system_clock::time_point timer;
   glm::vec2 mouse;
   float yaw;
   float pitch;
 
-  std::unique_ptr<etna::Window> vkWindow;
-  std::unique_ptr<etna::PerFrameCmdMgr> commandManager;
-
-  etna::Image image;
-  etna::GlobalContext* context;
-
-  etna::GraphicsPipeline texturePipeline{};
-  etna::GraphicsPipeline graphicsPipeline{};
-
-  etna::Sampler textureSampler;
-
-  etna::Image texture;
+  std::unique_ptr<Renderer> renderer;
 };
