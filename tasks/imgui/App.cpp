@@ -27,19 +27,6 @@ App::App()
   // TODO: this is bad design, this initialization is dependent on the current ImGui context, but we
   // pass it implicitly here instead of explicitly. Beware if trying to do something tricky.
   ImGuiRenderer::enableImGuiForWindow(mainWindow->native());
-  /*
-  vkWindow = etna::get_context().createWindow(etna::Window::CreateInfo{
-    .surface = std::move(surface),
-  });
-
-  auto [w, h] = vkWindow->recreateSwapchain(etna::Window::DesiredProperties{
-    .resolution = {resolution.x, resolution.y},
-    .vsync = useVsync,
-  });
-  resolution = {w, h};
-
-  commandManager = etna::get_context().createPerFrameCmdMgr();
-*/
 }
 
 App::~App()
@@ -105,6 +92,6 @@ void App::processInput()
 
 void App::drawFrame()
 {
-  renderer->update();
+  renderer->update(static_cast<float>(windowing.getTime()));
   renderer->drawFrame();
 }

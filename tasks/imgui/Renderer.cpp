@@ -61,7 +61,6 @@ void Renderer::initFrameDelivery(vk::UniqueSurfaceKHR a_surface, ResolutionProvi
   guiRenderer = std::make_unique<ImGuiRenderer>(window->getCurrentFormat());
 }
 
-// FOR RESIZE NOT TOUCHING FOR NOW
 void Renderer::recreateSwapchain(glm::uvec2 res)
 {
   auto& ctx = etna::get_context();
@@ -75,10 +74,10 @@ void Renderer::recreateSwapchain(glm::uvec2 res)
   resolution = {w, h};
 
   // Most resources depend on the current resolution, so we recreate them.
-  //worldRenderer->allocateResources(resolution);
+  worldRenderer->allocateResources(resolution);
 
   // Format of the swapchain CAN change on android
-  //worldRenderer->setupPipelines(window->getCurrentFormat());
+  worldRenderer->setupPipelines(window->getCurrentFormat());
 }
 
 void Renderer::loadScene()
@@ -86,26 +85,9 @@ void Renderer::loadScene()
   
 }
 
-void Renderer::debugInput(const Keyboard& kb)
+void Renderer::update(float time)
 {
-  if (kb[KeyboardKey::kB] == ButtonState::Falling)
-  {
-    const int retval = std::system("cd " GRAPHICS_COURSE_ROOT "/build"
-                                   " && cmake --build . --target shadowmap_shaders");
-    if (retval != 0)
-      spdlog::warn("Shader recompilation returned a non-zero return code!");
-    else
-    {
-      ETNA_CHECK_VK_RESULT(etna::get_context().getDevice().waitIdle());
-      etna::reload_shaders();
-      spdlog::info("Successfully reloaded shaders!");
-    }
-  }
-}
-
-void Renderer::update()
-{
-  worldRenderer->update();
+  worldRenderer->update(time);
 }
 
 void Renderer::drawFrame()
@@ -125,9 +107,9 @@ void Renderer::drawFrame()
 
     ETNA_CHECK_VK_RESULT(currentCmdBuf.begin(vk::CommandBufferBeginInfo{}));
     {
-      ETNA_PROFILE_GPU(currentCmdBuf, renderFrame);
+      //ETNA_PROFILE_GPU(currentCmdBuf, renderFrame);
 
-      worldRenderer->renderWorld(currentCmdBuf/*, image, view*/);
+      worldRenderer->renderWorld(currentCmdBuf, image, view);
 
       {
         ImDrawData* pDrawData = ImGui::GetDrawData();
@@ -145,10 +127,9 @@ void Renderer::drawFrame()
 
       etna::flush_barriers(currentCmdBuf);
 
-      ETNA_READ_BACK_GPU_PROFILING(currentCmdBuf);
+      //ETNA_READ_BACK_GPU_PROFILING(currentCmdBuf);
     }
     ETNA_CHECK_VK_RESULT(currentCmdBuf.end());
-
 
     auto renderingDone =
       commandManager->submit(std::move(currentCmdBuf), std::move(availableSem));
@@ -164,13 +145,10 @@ void Renderer::drawFrame()
   if (!nextSwapchainImage)
   {
     auto res = resolutionProvider();
-    if (res.x != 0 && res.y != 0) {
-      auto [w, h] = window->recreateSwapchain(etna::Window::DesiredProperties{
-        .resolution = {resolution.x, resolution.y},
-        .vsync = true,
-      });
-      ETNA_VERIFY((resolution == glm::uvec2{w, h}));
-    }
+    // On windows, we get 0,0 while the window is minimized and
+    // must skip frames until the window is un-minimized again
+    if (res.x != 0 && res.y != 0)
+      recreateSwapchain(res);
   }
 
 }

@@ -27,10 +27,10 @@ public:
   void allocateResources(glm::uvec2 swapchain_resolution);
 
   void debugInput(const Keyboard& kb);
-  void update();
+  void update(float time);
   void drawGui();
   void renderWorld(
-    vk::CommandBuffer cmd_buf/*, vk::Image target_image, vk::ImageView target_image_view*/);
+    vk::CommandBuffer cmd_buf, vk::Image target_image, vk::ImageView target_image_view);
 
 private:
   void renderScene(
@@ -40,7 +40,8 @@ private:
 private:
   std::unique_ptr<SceneManager> sceneMgr;
 
-  std::chrono::system_clock::time_point timer;
+  //std::chrono::system_clock::time_point timer;
+  float time;
   glm::vec2 mouse;
   float yaw;
   float pitch;

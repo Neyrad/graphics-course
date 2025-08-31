@@ -7,6 +7,8 @@
 #include <glm/ext.hpp>
 #include <imgui.h>
 
+#include <iostream>
+
 #include "stb_image.h"
 
 WorldRenderer::WorldRenderer()
@@ -64,13 +66,11 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
     std::span<const std::byte>(reinterpret_cast<const std::byte*>(pixels), imageSize));
 
   stbi_image_free(pixels);
-
-  timer = std::chrono::system_clock::now();
 }
 
 void WorldRenderer::loadShaders()
 {
- etna::create_program(
+  etna::create_program(
     "texture",
     {IMGUI_SHADERS_ROOT "texture.frag.spv",
      IMGUI_SHADERS_ROOT "toy.vert.spv"});
@@ -97,109 +97,106 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       .fragmentShaderOutput = {.colorAttachmentFormats = swapchain_format_vector}});
 }
 
-void WorldRenderer::update()
+void WorldRenderer::update(float time)
 {
-
+  this->time = time;
 }
 
 void WorldRenderer::renderWorld(
-  vk::CommandBuffer cmd_buf/*, vk::Image target_image, vk::ImageView target_image_view*/)
+  vk::CommandBuffer cmd_buf, vk::Image target_image, vk::ImageView target_image_view)
 {
-        auto curr_time = std::chrono::system_clock::now();
-
-      etna::set_state(
-        cmd_buf,
-        image.get(),
-        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-        vk::AccessFlagBits2::eColorAttachmentWrite,
-        vk::ImageLayout::eColorAttachmentOptimal,
-        vk::ImageAspectFlagBits::eColor);
-      etna::flush_barriers(cmd_buf);
+  etna::set_state(
+    cmd_buf,
+    image.get(),
+    vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+    vk::AccessFlagBits2::eColorAttachmentWrite,
+    vk::ImageLayout::eColorAttachmentOptimal,
+    vk::ImageAspectFlagBits::eColor);
+  etna::flush_barriers(cmd_buf);
 
 
-      {
-        etna::RenderTargetState state(
-          cmd_buf,
-          {{}, {resolution.x, resolution.y}},
-          {{image.get(), image.getView({})}},
-          {});
-        cmd_buf.bindPipeline(
-          vk::PipelineBindPoint::eGraphics, texturePipeline.getVkPipeline());
+  {
+    etna::RenderTargetState renderTargets(
+      cmd_buf,
+      {{0, 0}, {resolution.x, resolution.y}},
+      {{.image = target_image, .view = target_image_view}},
+      {});
 
-        struct Params
-        {
-          glm::uvec2 res;
-          float time;
-        };
-        Params params{resolution, std::chrono::duration<float>(curr_time - timer).count()};
-        cmd_buf.pushConstants(
-          texturePipeline.getVkPipelineLayout(),
-          vk::ShaderStageFlagBits::eFragment,
-          0,
-          sizeof(params),
-          &params);
+    cmd_buf.bindPipeline(
+      vk::PipelineBindPoint::eGraphics, texturePipeline.getVkPipeline());
 
-        cmd_buf.draw(3, 1, 0, 0);
-      }
+    struct Params
+    {
+      glm::uvec2 res;
+      float time;
+    };
+    
+    Params params{resolution, time};
+    //std::cout << "time: " << time << std::endl;  
+    
+    cmd_buf.pushConstants(
+      texturePipeline.getVkPipelineLayout(),
+      vk::ShaderStageFlagBits::eFragment,
+      0,
+      sizeof(params),
+      &params);
 
-
-      etna::set_state(
-        cmd_buf,
-        image.get(),
-        vk::PipelineStageFlagBits2::eFragmentShader,
-        vk::AccessFlagBits2::eShaderRead,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::ImageAspectFlagBits::eColor);
-      etna::flush_barriers(cmd_buf);
+    cmd_buf.draw(3, 1, 0, 0);
+  }
 
 
-      {
-        /*
-        etna::RenderTargetState state{
-          cmd_buf, {{}, {resolution.x, resolution.y}}, {{backbuffer, backbufferView}}, {}};
-        */
-        auto imguiInfo = etna::get_shader_program("imgui");
+  etna::set_state(
+    cmd_buf,
+    image.get(),
+    vk::PipelineStageFlagBits2::eFragmentShader,
+    vk::AccessFlagBits2::eShaderRead,
+    vk::ImageLayout::eShaderReadOnlyOptimal,
+    vk::ImageAspectFlagBits::eColor);
+  etna::flush_barriers(cmd_buf);
 
-        auto set = etna::create_descriptor_set(
-          imguiInfo.getDescriptorLayoutId(0),
-          cmd_buf,
-          {etna::Binding{
-             0, image.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)},
-           etna::Binding{
-             1,
-             texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)}});
 
-        vk::DescriptorSet vkSet = set.getVkSet();
-        cmd_buf.bindPipeline(
-          vk::PipelineBindPoint::eGraphics, graphicsPipeline.getVkPipeline());
-        cmd_buf.bindDescriptorSets(
-          vk::PipelineBindPoint::eGraphics,
-          graphicsPipeline.getVkPipelineLayout(),
-          0,
+  {
+    auto imguiInfo = etna::get_shader_program("imgui");
+
+    auto set = etna::create_descriptor_set(
+      imguiInfo.getDescriptorLayoutId(0),
+      cmd_buf,
+      {etna::Binding{
+          0, image.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)},
+        etna::Binding{
           1,
-          &vkSet,
-          0,
+          texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)}});
 
-          nullptr);
+    vk::DescriptorSet vkSet = set.getVkSet();
+    cmd_buf.bindPipeline(
+      vk::PipelineBindPoint::eGraphics, graphicsPipeline.getVkPipeline());
+    cmd_buf.bindDescriptorSets(
+      vk::PipelineBindPoint::eGraphics,
+      graphicsPipeline.getVkPipelineLayout(),
+      0,
+      1,
+      &vkSet,
+      0,
+      nullptr);
 
-        struct Params
-        {
-          glm::uvec2 res;
-          glm::uvec2 mouse;
-          float yaw;
-          float pitch;
-          float time;
-        };
-        Params params{resolution, mouse, yaw, pitch, std::chrono::duration<float>(curr_time - timer).count()};
-        cmd_buf.pushConstants(
-          graphicsPipeline.getVkPipelineLayout(),
-          vk::ShaderStageFlagBits::eFragment,
-          0,
-          sizeof(params),
-          &params);
+    struct Params
+    {
+      glm::uvec2 res;
+      glm::uvec2 mouse;
+      float yaw;
+      float pitch;
+      float time;
+    };
+    Params params{resolution, mouse, yaw, pitch, time};
+    cmd_buf.pushConstants(
+      graphicsPipeline.getVkPipelineLayout(),
+      vk::ShaderStageFlagBits::eFragment,
+      0,
+      sizeof(params),
+      &params);
 
-        cmd_buf.draw(3, 1, 0, 0);
-      }
+    cmd_buf.draw(3, 1, 0, 0);
+  }
 }
 
 void WorldRenderer::drawGui()
@@ -215,6 +212,10 @@ void WorldRenderer::drawGui()
   ImGui::SliderFloat3("Light source position", pos, -10.f, 10.f);
   uniformParams.lightPos = {pos[0], pos[1], pos[2]};
 */
+  ImGui::Text(
+    "Time = %f",
+    time);
+
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",
     1000.0f / ImGui::GetIO().Framerate,
