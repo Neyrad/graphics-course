@@ -1,13 +1,16 @@
 #pragma once
 
-#include <etna/Sampler.hpp>
 #include <etna/Window.hpp>
 #include <etna/PerFrameCmdMgr.hpp>
 #include <etna/ComputePipeline.hpp>
+#include <etna/GraphicsPipeline.hpp>
 #include <etna/Image.hpp>
-#include <chrono>
 
 #include "wsi/OsWindowingManager.hpp"
+
+#include <etna/GlobalContext.hpp>
+#include <etna/Sampler.hpp>
+
 
 class App
 {
@@ -19,6 +22,7 @@ public:
 
 private:
   void drawFrame();
+  void processInput();
 
 private:
   OsWindowingManager windowing;
@@ -26,22 +30,21 @@ private:
 
   glm::uvec2 resolution;
   bool useVsync;
+  std::chrono::system_clock::time_point timer;
+  glm::vec2 mouse;
+  float yaw;
+  float pitch;
 
   std::unique_ptr<etna::Window> vkWindow;
   std::unique_ptr<etna::PerFrameCmdMgr> commandManager;
 
-  etna::ComputePipeline pipeline;
-  etna::Image shader_image;
-  etna::Sampler sampler;
-  glm::vec2 mouse_pos;
-  std::chrono::time_point<std::chrono::system_clock> init_time = std::chrono::system_clock::now();
+  etna::Image image;
+  etna::GlobalContext* context;
 
-  struct Params
-  {
-    glm::vec2 resolution;
-    glm::vec2 mouse_pos;
-    float time;
-  };
+  etna::GraphicsPipeline texturePipeline{};
+  etna::GraphicsPipeline graphicsPipeline{};
 
-  Params params;
+  etna::Sampler textureSampler;
+
+  etna::Image texture;
 };
