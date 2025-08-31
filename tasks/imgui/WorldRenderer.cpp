@@ -97,9 +97,12 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       .fragmentShaderOutput = {.colorAttachmentFormats = swapchain_format_vector}});
 }
 
-void WorldRenderer::update(float time)
+void WorldRenderer::update(FramePacket& FP)
 {
-  this->time = time;
+  this->time = FP.time;
+  this->yaw = FP.yaw;
+  this->pitch = FP.pitch;
+  this->mouse = FP.mouse;
 }
 
 void WorldRenderer::renderWorld(
@@ -215,6 +218,18 @@ void WorldRenderer::drawGui()
   ImGui::Text(
     "Time = %f",
     time);
+
+  ImGui::Text(
+    "yaw = %f",
+    yaw);
+
+  ImGui::Text(
+    "pitch = %f",
+    pitch);
+
+  ImGui::Text(
+    "mouse = (%f, %f)",
+    mouse.x, mouse.y);
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",

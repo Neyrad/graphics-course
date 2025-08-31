@@ -9,7 +9,7 @@
 #include "scene/SceneManager.hpp"
 #include "render_utils/QuadRenderer.hpp"
 #include "wsi/Keyboard.hpp"
-
+#include "FramePacket.hpp"
 
 /**
  * The meat of the sample. All things you see on the screen are contained within this class.
@@ -27,7 +27,7 @@ public:
   void allocateResources(glm::uvec2 swapchain_resolution);
 
   void debugInput(const Keyboard& kb);
-  void update(float time);
+  void update(FramePacket& FP);
   void drawGui();
   void renderWorld(
     vk::CommandBuffer cmd_buf, vk::Image target_image, vk::ImageView target_image_view);

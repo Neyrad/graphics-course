@@ -59,7 +59,7 @@ void App::processInput()
       etna::reload_shaders();
       spdlog::info("Successfully reloaded shaders!");
     }
-    timer = std::chrono::system_clock::now();
+    //timer = std::chrono::system_clock::now();
   }
 
   if (mainWindow.get()->keyboard[KeyboardKey::kEscape] == ButtonState::Falling)
@@ -92,6 +92,13 @@ void App::processInput()
 
 void App::drawFrame()
 {
-  renderer->update(static_cast<float>(windowing.getTime()));
+  auto time = static_cast<float>(windowing.getTime());
+  FramePacket FP;
+  FP.mouse = mouse;
+  FP.yaw = yaw;
+  FP.pitch = pitch;
+  FP.time = time;
+
+  renderer->update(FP);
   renderer->drawFrame();
 }

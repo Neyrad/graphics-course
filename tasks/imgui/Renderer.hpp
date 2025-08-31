@@ -31,7 +31,7 @@ public:
   void loadScene();
 
   void debugInput(const Keyboard& kb);
-  void update(float time);
+  void update(FramePacket& FP);
   void drawFrame();
 
 

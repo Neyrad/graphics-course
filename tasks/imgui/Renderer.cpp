@@ -85,9 +85,9 @@ void Renderer::loadScene()
   
 }
 
-void Renderer::update(float time)
+void Renderer::update(FramePacket& FP)
 {
-  worldRenderer->update(time);
+  worldRenderer->update(FP);
 }
 
 void Renderer::drawFrame()

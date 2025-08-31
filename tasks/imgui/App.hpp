@@ -12,6 +12,7 @@
 #include <etna/Sampler.hpp>
 
 #include "Renderer.hpp"
+#include "FramePacket.hpp"
 
 class App
 {
@@ -30,7 +31,7 @@ private:
   std::unique_ptr<OsWindow> mainWindow;
 
   bool useVsync;
-  std::chrono::system_clock::time_point timer;
+  //std::chrono::system_clock::time_point timer;
   glm::vec2 mouse;
   float yaw;
   float pitch;
