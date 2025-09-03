@@ -105,98 +105,72 @@ void WorldRenderer::update(FramePacket& FP)
   this->mouse = FP.mouse;
 }
 
-void WorldRenderer::renderWorld(
-  vk::CommandBuffer cmd_buf, vk::Image target_image, vk::ImageView target_image_view)
+void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
+                                vk::Image target_image, vk::ImageView target_image_view)
 {
-  etna::set_state(
-    cmd_buf,
-    image.get(),
-    vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-    vk::AccessFlagBits2::eColorAttachmentWrite,
-    vk::ImageLayout::eColorAttachmentOptimal,
-    vk::ImageAspectFlagBits::eColor);
+  // --- PASS 1: render to offscreen 'image' ---
+  etna::set_state(cmd_buf, image.get(),
+                  vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+                  vk::AccessFlagBits2::eColorAttachmentWrite,
+                  vk::ImageLayout::eColorAttachmentOptimal,
+                  vk::ImageAspectFlagBits::eColor);
   etna::flush_barriers(cmd_buf);
 
-
   {
-    etna::RenderTargetState renderTargets(
+    etna::RenderTargetState rt1(
       cmd_buf,
       {{0, 0}, {resolution.x, resolution.y}},
-      {{.image = target_image, .view = target_image_view}},
-      {});
+      {{ .image = image.get(), .view = image.getView({})}},
+      {} );
 
-    cmd_buf.bindPipeline(
-      vk::PipelineBindPoint::eGraphics, texturePipeline.getVkPipeline());
+    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, texturePipeline.getVkPipeline());
 
-    struct Params
-    {
-      glm::uvec2 res;
-      float time;
-    };
-    
-    Params params{resolution, time};
-    //std::cout << "time: " << time << std::endl;  
-    
-    cmd_buf.pushConstants(
-      texturePipeline.getVkPipelineLayout(),
-      vk::ShaderStageFlagBits::eFragment,
-      0,
-      sizeof(params),
-      &params);
+    struct Params { glm::uvec2 res; float time; } params{resolution, time};
+    cmd_buf.pushConstants(texturePipeline.getVkPipelineLayout(),
+                          vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
     cmd_buf.draw(3, 1, 0, 0);
   }
 
-
-  etna::set_state(
-    cmd_buf,
-    image.get(),
-    vk::PipelineStageFlagBits2::eFragmentShader,
-    vk::AccessFlagBits2::eShaderRead,
-    vk::ImageLayout::eShaderReadOnlyOptimal,
-    vk::ImageAspectFlagBits::eColor);
+  etna::set_state(cmd_buf, image.get(),
+                  vk::PipelineStageFlagBits2::eFragmentShader,
+                  vk::AccessFlagBits2::eShaderRead,
+                  vk::ImageLayout::eShaderReadOnlyOptimal,
+                  vk::ImageAspectFlagBits::eColor);
   etna::flush_barriers(cmd_buf);
 
-
+  // --- PASS 2: render to swapchain, sample 'image' ---
   {
-    auto imguiInfo = etna::get_shader_program("imgui");
+    etna::RenderTargetState rt2(
+      cmd_buf,
+      {{0, 0}, {resolution.x, resolution.y}},
+      {{ .image = target_image, .view = target_image_view }},
+      {} );
 
+    auto imguiInfo = etna::get_shader_program("imgui");
     auto set = etna::create_descriptor_set(
       imguiInfo.getDescriptorLayoutId(0),
       cmd_buf,
-      {etna::Binding{
-          0, image.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)},
-        etna::Binding{
-          1,
-          texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal)}});
+      {
+        // binding 0 -> what has been rendered in PASS 1
+        etna::Binding{ 0, image.genBinding(textureSampler.get(),
+                                           vk::ImageLayout::eShaderReadOnlyOptimal) },
+        // binding 1 -> PNG texture
+        etna::Binding{ 1, texture.genBinding(textureSampler.get(),
+                                             vk::ImageLayout::eShaderReadOnlyOptimal) }
+      });
 
     vk::DescriptorSet vkSet = set.getVkSet();
-    cmd_buf.bindPipeline(
-      vk::PipelineBindPoint::eGraphics, graphicsPipeline.getVkPipeline());
-    cmd_buf.bindDescriptorSets(
-      vk::PipelineBindPoint::eGraphics,
-      graphicsPipeline.getVkPipelineLayout(),
-      0,
-      1,
-      &vkSet,
-      0,
-      nullptr);
+    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.getVkPipeline());
+    cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                               graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
-    struct Params
-    {
-      glm::uvec2 res;
-      glm::uvec2 mouse;
-      float yaw;
-      float pitch;
-      float time;
-    };
-    Params params{resolution, mouse, yaw, pitch, time};
-    cmd_buf.pushConstants(
-      graphicsPipeline.getVkPipelineLayout(),
-      vk::ShaderStageFlagBits::eFragment,
-      0,
-      sizeof(params),
-      &params);
+    struct Params {
+      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time;
+    } params{resolution, mouse, yaw, pitch, time};
+
+    cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
+                          vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
     cmd_buf.draw(3, 1, 0, 0);
   }
