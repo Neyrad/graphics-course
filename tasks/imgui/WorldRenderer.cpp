@@ -99,6 +99,12 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
 
 void WorldRenderer::update(FramePacket& FP)
 {
+  // calc camera matrix
+  {
+    const float aspect = float(resolution.x) / float(resolution.y);
+    worldViewProj = FP.mainCam.projTm(aspect) * FP.mainCam.viewTm();
+  }
+
   this->time = FP.time;
   this->yaw = FP.yaw;
   this->pitch = FP.pitch;

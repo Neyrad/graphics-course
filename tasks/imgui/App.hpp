@@ -7,6 +7,7 @@
 #include <etna/Image.hpp>
 
 #include "wsi/OsWindowingManager.hpp"
+#include "scene/Camera.hpp"
 
 #include <etna/GlobalContext.hpp>
 #include <etna/Sampler.hpp>
@@ -24,14 +25,22 @@ public:
 
 private:
   void drawFrame();
-  void processInput();
+  void processInput(float dt);
+
+  void moveCam(Camera& cam, const Keyboard& kb, float dt);
+  void rotateCam(Camera& cam, const Mouse& ms, float dt);
 
 private:
   OsWindowingManager windowing;
   std::unique_ptr<OsWindow> mainWindow;
 
-  bool useVsync;
-  //std::chrono::system_clock::time_point timer;
+  //bool useVsync;
+  
+  float camMoveSpeed = 1;
+  float camRotateSpeed = 0.1f;
+  float zoomSensitivity = 2.0f;
+  Camera mainCam;
+
   glm::vec2 mouse;
   float yaw;
   float pitch;

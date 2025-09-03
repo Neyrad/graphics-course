@@ -40,12 +40,13 @@ private:
 private:
   std::unique_ptr<SceneManager> sceneMgr;
 
-  //std::chrono::system_clock::time_point timer;
+
+  glm::mat4x4 worldViewProj;
+
   float time;
   glm::vec2 mouse;
   float yaw;
   float pitch;
-
 
   etna::Image image;
   etna::Sampler textureSampler;
