@@ -123,15 +123,18 @@ void WorldRenderer::update(FramePacket& FP)
 
   // Upload everything to GPU-mapped memory
   {
+    float yOffsets[N_PLANETS] = {4.f, 6.f, 5.f, 7.f, 3.f};
+    float speedModifiers[N_PLANETS] = {1.f, 2.f, 0.5f, 2.5f, 0.7f};
+
     for (int i = 0; i < N_PLANETS; ++i) {
-      planets[i].radius = 5 + i * 5;
-      planets[i].orbitAngle += planetSpeed * deltaTime;
-      uniformParams.planet[i] = glm::vec4(
-          cos(planets[i].orbitAngle) * planets[i].radius,
-          5 + sin(planets[i].orbitAngle*0.2f)*planets[i].radius*0.2f,
-          sin(planets[i].orbitAngle) * planets[i].radius,
-          i
-      );
+        planets[i].orbitAngle += planetSpeed * deltaTime;
+
+        uniformParams.planet[i] = glm::vec4(
+            cos(planets[i].orbitAngle * speedModifiers[i]) * planets[i].radius,
+            yOffsets[i] + sin(planets[i].orbitAngle * 0.2f) * planets[i].radius * 0.2f,
+            sin(planets[i].orbitAngle * speedModifiers[i]) * planets[i].radius,
+            i
+        );
     }
 
     std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
@@ -216,7 +219,7 @@ void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
 
-  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.f, 20.0f);
+  ImGui::SliderFloat("Planet speed", &planetSpeed, -20.0f, 20.0f);
 
   ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 300.0f);
 

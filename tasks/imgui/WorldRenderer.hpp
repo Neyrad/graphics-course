@@ -66,11 +66,19 @@ private:
   };
 
   struct Planet {
-    float orbitAngle = 0.f;  // поточний кут
-    float radius = 1.f;      // радіус орбіти
+    float orbitAngle;
+    float radius;
   };
 
-  std::vector<Planet> planets{std::vector<Planet>(N_PLANETS)};
+  //std::vector<Planet> planets{std::vector<Planet>(N_PLANETS)};
+
+  std::vector<Planet> planets = {
+    {0.3f, 10.f},   // Planet 0
+    {1.1f, -16.f},  // Planet 1
+    {2.0f, 12.f},   // Planet 2
+    {4.5f, -24.f},  // Planet 3
+    {5.2f, -10.f}   // Planet 4
+  };
 
   etna::Image image;
   etna::Sampler textureSampler;
