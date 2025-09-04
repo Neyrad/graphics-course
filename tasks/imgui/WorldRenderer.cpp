@@ -66,6 +66,15 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
     std::span<const std::byte>(reinterpret_cast<const std::byte*>(pixels), imageSize));
 
   stbi_image_free(pixels);
+
+  constants = ctx.createBuffer(etna::Buffer::CreateInfo{
+    .size = sizeof(UniformParams),
+    .bufferUsage = vk::BufferUsageFlagBits::eUniformBuffer,
+    .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY,
+    .name = "constants",
+  });
+
+  constants.map();
 }
 
 void WorldRenderer::loadShaders()
@@ -109,6 +118,8 @@ void WorldRenderer::update(FramePacket& FP)
   this->yaw = FP.yaw;
   this->pitch = FP.pitch;
   this->mouse = FP.mouse;
+
+  std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -131,7 +142,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
     cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, texturePipeline.getVkPipeline());
 
-    struct Params { glm::uvec2 res; float time; } params{resolution, time};
+    struct Params { glm::uvec2 res; float time; float scale; } params{resolution, time, scale};
     cmd_buf.pushConstants(texturePipeline.getVkPipelineLayout(),
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
@@ -163,7 +174,10 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                            vk::ImageLayout::eShaderReadOnlyOptimal) },
         // binding 1 -> PNG texture
         etna::Binding{ 1, texture.genBinding(textureSampler.get(),
-                                             vk::ImageLayout::eShaderReadOnlyOptimal) }
+                                             vk::ImageLayout::eShaderReadOnlyOptimal) },
+
+        // binding 2 -> uniform buffer
+        etna::Binding{ 2, constants.genBinding() }
       });
 
     vk::DescriptorSet vkSet = set.getVkSet();
@@ -185,18 +199,15 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
-/*
+
+  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.f, 5.0f);
+
+  ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 40.0f);
+
   float color[3]{uniformParams.baseColor.r, uniformParams.baseColor.g, uniformParams.baseColor.b};
   ImGui::ColorEdit3(
     "Meshes base color", color, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
   uniformParams.baseColor = {color[0], color[1], color[2]};
-
-  float pos[3]{uniformParams.lightPos.x, uniformParams.lightPos.y, uniformParams.lightPos.z};
-  ImGui::SliderFloat3("Light source position", pos, -10.f, 10.f);
-  uniformParams.lightPos = {pos[0], pos[1], pos[2]};
-*/
-
-  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.0f, 10.0f);
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",

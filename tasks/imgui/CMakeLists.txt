@@ -7,7 +7,7 @@ add_executable(imgui
 )
 
 target_link_libraries(imgui
-  PRIVATE glfw etna glm::glm wsi gui scene)
+  PRIVATE glfw etna glm::glm wsi gui scene render_utils)
 
 target_add_shaders(imgui
   shaders/toy.vert

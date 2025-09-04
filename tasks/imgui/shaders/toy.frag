@@ -1,9 +1,17 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive : require
+
+#include "UniformParams.h"
 
 layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D iChannel1;
 layout(binding = 1) uniform sampler2D iChannel2;
+
+layout(binding = 2, set = 0) uniform AppData
+{
+  UniformParams uparams;
+};
 
 layout(push_constant) uniform params {
   uvec2 iResolution;
@@ -328,4 +336,5 @@ void main() {
     }
 
     outColor = vec4(color, 1.0);
+    //outColor = vec4(uparams.baseColor, 1.0);
 }

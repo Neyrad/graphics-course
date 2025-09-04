@@ -11,6 +11,8 @@
 #include "wsi/Keyboard.hpp"
 #include "FramePacket.hpp"
 
+#include "shaders/UniformParams.h"
+
 /**
  * The meat of the sample. All things you see on the screen are contained within this class.
  * This what you want to change and expand between different samples.
@@ -40,6 +42,7 @@ private:
 private:
   std::unique_ptr<SceneManager> sceneMgr;
 
+  etna::Buffer constants;
 
   glm::mat4x4 worldViewProj;
 
@@ -49,6 +52,12 @@ private:
   float pitch;
 
   float planetSpeed;
+  float scale;
+
+  UniformParams uniformParams
+  {
+    .baseColor = {0.9f, 0.92f, 1.0f}
+  };
 
   etna::Image image;
   etna::Sampler textureSampler;

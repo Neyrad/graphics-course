@@ -6,6 +6,7 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform params {
   uvec2 iResolution;
   float iTime;
+  float scale;
 };
 
 void main()
@@ -14,7 +15,7 @@ void main()
     vec2 uv = vec2(gl_FragCoord).xy / iResolution.xy;
 
     // Scale the UVs to adjust the size of the triangles
-    float scale = 20.0;
+    //float scale = 20.0;
     uv *= scale;
 
     // Calculate triangular grid
