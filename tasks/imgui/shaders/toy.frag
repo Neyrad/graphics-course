@@ -11,6 +11,7 @@ layout(push_constant) uniform params {
   float yaw;
   float pitch;
   float iTime;
+  float planetSpeed;
 };
 
 const vec3 light = vec3(0, 6, 5);
@@ -119,7 +120,7 @@ vec3 saturnSdf(in vec3 p, in vec2 uv, in mat3 m, in vec4 pos, float id)
 vec3 sdf(in vec3 p, in vec2 uv, in mat3 m, out vec4 planet[N_PLANETS])
 {
     float orbitRadius = 9.0;
-    float orbitSpeed = iTime * (1. / 5.);
+    float orbitSpeed = iTime * (1. / 5.) * planetSpeed;
     float coss = orbitRadius * cos(orbitSpeed);
     float sinn = orbitRadius * sin(orbitSpeed);
     float mcoss = coss * (1. / 5.);

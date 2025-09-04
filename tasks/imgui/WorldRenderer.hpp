@@ -48,6 +48,8 @@ private:
   float yaw;
   float pitch;
 
+  float planetSpeed;
+
   etna::Image image;
   etna::Sampler textureSampler;
   etna::Image texture;

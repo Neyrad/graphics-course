@@ -6,7 +6,7 @@
 #include "gui/ImGuiRenderer.hpp"
 
 
-#include <algorithm> // for std::clamp
+#include <algorithm>
 
 App::App()
 {
@@ -50,7 +50,6 @@ void App::run()
 
     drawFrame();
   }
-  //ETNA_CHECK_VK_RESULT(etna::get_context().getDevice().waitIdle());
 }
 
 void App::processInput(float dt)
@@ -124,15 +123,7 @@ void App::moveCam(Camera& cam, const Keyboard& kb, float dt)
 
   if (is_held_down(kb[KeyboardKey::kR]))
     dir += cam.up();
-/*
-  std::cout << "dir = (" << dir[0] << ", " 
-                         << dir[1] << ", "
-                         << dir[2] << ")" << std::endl;
 
-  std::cout << "normalize(dir) = (" << normalize(dir)[0] << ", " 
-                         << normalize(dir)[1] << ", "
-                         << normalize(dir)[2] << ")" << std::endl;
-*/
   // NOTE: This is how you make moving diagonally not be faster than
   // in a straight line.
   cam.move(dt * camMoveSpeed * (length(dir) > 1e-9 ? normalize(dir) : dir));
@@ -140,11 +131,8 @@ void App::moveCam(Camera& cam, const Keyboard& kb, float dt)
 
 void App::rotateCam(Camera& cam, const Mouse& ms, float /*dt*/)
 {
-  //std::cout << "ms.capturedPosDelta.x = " << ms.capturedPosDelta.x << std::endl;
-  //std::cout << "ms.capturedPosDelta.y = " << ms.capturedPosDelta.y << std::endl;
-
-  yaw -= ms.capturedPosDelta.x / 100.0f;
-  pitch -= ms.capturedPosDelta.y / 100.0f;
+  yaw -= ms.capturedPosDelta.x / 200.0f;
+  pitch -= ms.capturedPosDelta.y / 200.0f;
   pitch = std::clamp(pitch, -1.5f, 1.5f);
 
   // Rotate camera based on mouse movement

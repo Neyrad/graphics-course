@@ -172,8 +172,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
     struct Params {
-      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time;
-    } params{resolution, mouse, yaw, pitch, time};
+      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time; float planetSpeed;
+    } params{resolution, mouse, yaw, pitch, time, planetSpeed};
 
     cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -195,21 +195,8 @@ void WorldRenderer::drawGui()
   ImGui::SliderFloat3("Light source position", pos, -10.f, 10.f);
   uniformParams.lightPos = {pos[0], pos[1], pos[2]};
 */
-  ImGui::Text(
-    "Time = %f",
-    time);
 
-  ImGui::Text(
-    "yaw = %f",
-    yaw);
-
-  ImGui::Text(
-    "pitch = %f",
-    pitch);
-
-  ImGui::Text(
-    "mouse = (%f, %f)",
-    mouse.x, mouse.y);
+  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.0f, 10.0f);
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",
