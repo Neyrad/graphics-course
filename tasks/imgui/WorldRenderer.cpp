@@ -114,12 +114,28 @@ void WorldRenderer::update(FramePacket& FP)
     worldViewProj = FP.mainCam.projTm(aspect) * FP.mainCam.viewTm();
   }
 
+  float deltaTime = FP.time - this->time;
+
   this->time = FP.time;
   this->yaw = FP.yaw;
   this->pitch = FP.pitch;
   this->mouse = FP.mouse;
 
-  std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
+  // Upload everything to GPU-mapped memory
+  {
+    for (int i = 0; i < N_PLANETS; ++i) {
+      planets[i].radius = 5 + i * 5;
+      planets[i].orbitAngle += planetSpeed * deltaTime;
+      uniformParams.planet[i] = glm::vec4(
+          cos(planets[i].orbitAngle) * planets[i].radius,
+          5 + sin(planets[i].orbitAngle*0.2f)*planets[i].radius*0.2f,
+          sin(planets[i].orbitAngle) * planets[i].radius,
+          i
+      );
+    }
+
+    std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
+  }
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -200,14 +216,31 @@ void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
 
-  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.f, 5.0f);
+  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.f, 20.0f);
 
-  ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 40.0f);
+  ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 300.0f);
 
-  float color[3]{uniformParams.baseColor.r, uniformParams.baseColor.g, uniformParams.baseColor.b};
+  float fov = uniformParams.fov;
+  ImGui::SliderFloat("FOV", &fov, 0.1f, 10.0f);
+  uniformParams.fov = fov;
+
+  float spaceColor[3]{uniformParams.spaceColor.r, uniformParams.spaceColor.g, uniformParams.spaceColor.b};
   ImGui::ColorEdit3(
-    "Meshes base color", color, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
-  uniformParams.baseColor = {color[0], color[1], color[2]};
+    "Cubemap Space Color", spaceColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
+  uniformParams.spaceColor = {spaceColor[0], spaceColor[1], spaceColor[2]};
+
+  float waveColor[3]{uniformParams.waveColor.r, uniformParams.waveColor.g, uniformParams.waveColor.b};
+  ImGui::ColorEdit3(
+    "Cubemap Wave Color", waveColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
+  uniformParams.waveColor = {waveColor[0], waveColor[1], waveColor[2]};
+
+  if (ImGui::Button("Default values")) {
+    uniformParams.fov = 1.0f;
+    planetSpeed = 1.0f;
+    scale = 20.0f;
+    uniformParams.spaceColor = {0.0f, 0.0f, 0.0f};
+    uniformParams.waveColor = {0.15f, 0.75f, 0.03f};
+  }
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",

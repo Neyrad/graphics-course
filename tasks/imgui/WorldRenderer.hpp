@@ -51,13 +51,26 @@ private:
   float yaw;
   float pitch;
 
-  float planetSpeed;
-  float scale;
+  float planetSpeed = 1.f;
+  float scale = 20.f;
 
   UniformParams uniformParams
   {
-    .baseColor = {0.9f, 0.92f, 1.0f}
+    .planet = {},
+    .spaceColor = {0.0f, 0.0f, 0.0f},
+    .pad1 = {},
+    .waveColor = {0.15f, 0.75f, 0.03f},
+    .pad2 = {},
+    .fov = 1.0f,
+    .pad3 = {}
   };
+
+  struct Planet {
+    float orbitAngle = 0.f;  // поточний кут
+    float radius = 1.f;      // радіус орбіти
+  };
+
+  std::vector<Planet> planets{std::vector<Planet>(N_PLANETS)};
 
   etna::Image image;
   etna::Sampler textureSampler;

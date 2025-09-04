@@ -7,7 +7,13 @@
 
 struct UniformParams
 {
-  shader_vec3 baseColor;
+  shader_vec4 planet[N_PLANETS];
+  shader_vec3 spaceColor;
+  float pad1;
+  shader_vec3 waveColor;
+  float pad2;
+  shader_float fov;
+  float pad3[3];
 };
 
 

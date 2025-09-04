@@ -22,8 +22,8 @@ layout(push_constant) uniform params {
   float planetSpeed;
 };
 
-const vec3 light = vec3(0, 6, 5);
-const float fov = 1.0; // Wider FOV for a better perspective
+const vec3 light = vec3(0, -6, -5);
+//const float fov = 1.0; // Wider FOV for a better perspective
 const int maxSteps = 70;
 const float eps = 0.01;
 const float maxDist = 100.0;
@@ -127,6 +127,7 @@ vec3 saturnSdf(in vec3 p, in vec2 uv, in mat3 m, in vec4 pos, float id)
 #define N_PLANETS 5
 vec3 sdf(in vec3 p, in vec2 uv, in mat3 m, out vec4 planet[N_PLANETS])
 {
+    /*
     float orbitRadius = 9.0;
     float orbitSpeed = iTime * (1. / 5.) * planetSpeed;
     float coss = orbitRadius * cos(orbitSpeed);
@@ -138,6 +139,11 @@ vec3 sdf(in vec3 p, in vec2 uv, in mat3 m, out vec4 planet[N_PLANETS])
     planet[2] = vec4(3.*sinn,   msinn,     coss,      2.);
     planet[3] = vec4(1.+coss,   -5.+msinn, 2.*sinn,   2.);
     planet[4] = vec4(-2.-mcoss, -3.+mcoss, -1.5*coss, 0.);
+    */
+
+    for (int i = 0; i < N_PLANETS; ++i) {
+        planet[i] = uparams.planet[i];
+    }
 
     vec3 ret = vec3(INF, 0, 0);
     int id = 0;
@@ -251,8 +257,11 @@ vec4 Cubemap(in vec2 fragCoord, in vec3 rayDir)
     vec3 rd = normalize(rayDir);
 
     // Define base colors
-    vec3 spaceColor = vec3(0.0, 0.0, 0.0); // Dark background (space)
-    vec3 waveColor = vec3(0.15, 0.75, 0.03);  // Wave color
+    //vec3 spaceColor = vec3(0.0, 0.0, 0.0); // Dark background (space)
+    //vec3 waveColor = vec3(0.15, 0.75, 0.03);  // Wave color
+
+    vec3 spaceColor = uparams.spaceColor;
+    vec3 waveColor = uparams.waveColor;
 
     // Base color for space
     vec3 col = spaceColor;
@@ -302,7 +311,7 @@ void main() {
     mat3 camMat = camera(rotatedCamera, lookAt, vec3(0, 1, 0));
     
     // Compute ray direction
-    vec3 rayDir = camMat * normalize(vec3(uv * fov, -1.0)); // Adjust FOV
+    vec3 rayDir = camMat * normalize(vec3(uv * uparams.fov, -1.0)); // Adjust FOV
 
     // Trace rays and objects in the scene
     vec4 planet[N_PLANETS];
