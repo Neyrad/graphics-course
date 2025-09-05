@@ -13,4 +13,6 @@ target_add_shaders(particles
   shaders/toy.vert
   shaders/toy.frag
   shaders/texture.frag
+  shaders/particles.vert
+  shaders/particles.frag
 )

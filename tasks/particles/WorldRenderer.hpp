@@ -38,7 +38,6 @@ private:
   void renderScene(
     vk::CommandBuffer cmd_buf, const glm::mat4x4& glob_tm, vk::PipelineLayout pipeline_layout);
 
-
 private:
   std::unique_ptr<SceneManager> sceneMgr;
 
@@ -70,6 +69,25 @@ private:
     float radius;
   };
 
+  struct Particle {
+    glm::vec3 pos;
+    glm::vec3 vel;
+    float lifetime;
+    float age;
+  };
+
+  struct Emitter {
+    glm::vec3 position;
+    float spawnRate;
+    float particleLifetime;
+    float initialSpeed;
+    std::vector<Particle> particleList;
+  };
+
+  std::vector<Emitter> emitters;
+
+  void spawnParticles(Emitter& emitter, float deltaTime);
+
   //std::vector<Planet> planets{std::vector<Planet>(N_PLANETS)};
 
   std::vector<Planet> planets = {
@@ -86,6 +104,7 @@ private:
 
   etna::GraphicsPipeline texturePipeline{};
   etna::GraphicsPipeline graphicsPipeline{};
+  etna::GraphicsPipeline emittersPipeline{};
 
   glm::uvec2 resolution;
 };

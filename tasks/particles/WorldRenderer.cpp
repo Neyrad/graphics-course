@@ -14,6 +14,14 @@
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
+  emitters.push_back(Emitter{
+    .position = glm::vec3(0.0f, 0.0f, 0.0f),
+    .spawnRate = 10.0f,          
+    .particleLifetime = 2.0f,    
+    .initialSpeed = 1.0f,        
+    .particleList = {}
+  });
+
 }
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
@@ -87,6 +95,12 @@ void WorldRenderer::loadShaders()
   etna::create_program(
     "particles",
     {PARTICLES_SHADERS_ROOT "toy.frag.spv", PARTICLES_SHADERS_ROOT "toy.vert.spv"});
+
+  etna::create_program(
+  "emitters",
+  {PARTICLES_SHADERS_ROOT "particles.frag.spv",
+   PARTICLES_SHADERS_ROOT "particles.vert.spv"});
+
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
@@ -104,6 +118,32 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
     "particles",
     etna::GraphicsPipeline::CreateInfo{
       .fragmentShaderOutput = {.colorAttachmentFormats = swapchain_format_vector}});
+
+  emittersPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline("emitters", {
+      .blendingConfig = {
+          .attachments={
+              vk::PipelineColorBlendAttachmentState{
+                  .blendEnable = vk::True,
+                  .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+                  .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+                  .colorBlendOp = vk::BlendOp::eAdd,
+                  .srcAlphaBlendFactor = vk::BlendFactor::eOne,
+                  .dstAlphaBlendFactor = vk::BlendFactor::eZero,
+                  .alphaBlendOp = vk::BlendOp::eAdd,
+                  .colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                      vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+              },
+          },
+          .logicOpEnable = false,
+          .logicOp = vk::LogicOp::eAnd,
+          .blendConstants = {0, 0, 0, 0}
+      },
+      .fragmentShaderOutput =
+      {
+        .colorAttachmentFormats = {swapchain_format},
+        .depthAttachmentFormat = vk::Format::eD32Sfloat,
+      }
+  });
 }
 
 void WorldRenderer::update(FramePacket& FP)
@@ -139,6 +179,26 @@ void WorldRenderer::update(FramePacket& FP)
 
     std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
   }
+
+  for (auto& emitter : emitters) {
+    // спавн нових частинок
+    spawnParticles(emitter, deltaTime);
+
+    // оновлення існуючих
+    for (auto& p : emitter.particleList) {
+        p.age += deltaTime;
+        if (p.age < p.lifetime) {
+            p.pos += p.vel * deltaTime;
+        }
+    }
+
+    // видалення "мертвих"
+    emitter.particleList.erase(
+        std::remove_if(emitter.particleList.begin(), emitter.particleList.end(),
+                       [](auto& p) { return p.age >= p.lifetime; }),
+        emitter.particleList.end());
+  }
+
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -212,6 +272,40 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
     cmd_buf.draw(3, 1, 0, 0);
+
+    // --- PARTICLES ---
+    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
+
+    auto emittersInfo = etna::get_shader_program("emitters");
+    auto emitterSet = etna::create_descriptor_set(
+        emittersInfo.getDescriptorLayoutId(0),
+        cmd_buf,
+        {
+            etna::Binding{ 0, texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) }
+        }
+    );
+
+    vk::DescriptorSet emitterVkSet = emitterSet.getVkSet();
+    cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                               emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
+
+    struct PushConsts {
+        glm::mat4 viewProj;
+        glm::vec3 pos;
+        float size;
+        float alpha;
+    };
+
+    for (auto& emitter : emitters) {
+        for (auto& p : emitter.particleList) {
+            PushConsts pc{worldViewProj, p.pos, 1.0f, 1.0f - (p.age / p.lifetime)};
+            cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
+                                  vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                                  0, sizeof(PushConsts), &pc);
+
+            cmd_buf.draw(6, 1, 0, 0);
+        }
+    }
   }
 }
 
@@ -245,6 +339,13 @@ void WorldRenderer::drawGui()
     uniformParams.waveColor = {0.15f, 0.75f, 0.03f};
   }
 
+  if (ImGui::CollapsingHeader("Emitter")) {
+    ImGui::SliderFloat3("Position", &emitters[0].position.x, -10.f, 10.f);
+    ImGui::SliderFloat("Spawn rate", &emitters[0].spawnRate, 0.1f, 100.f);
+    ImGui::SliderFloat("Lifetime", &emitters[0].particleLifetime, 0.1f, 10.f);
+    ImGui::SliderFloat("Initial speed", &emitters[0].initialSpeed, 0.f, 10.f);
+  }
+
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",
     1000.0f / ImGui::GetIO().Framerate,
@@ -254,4 +355,22 @@ void WorldRenderer::drawGui()
 
   ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Press 'B' to recompile and reload shaders");
   ImGui::End();
+}
+
+void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
+    
+    int count = static_cast<int>(100 * emitter.spawnRate * deltaTime);
+    std::cout << "emitter.spawnRate = " << emitter.spawnRate << std::endl;
+    std::cout << "deltaTime = " << deltaTime << std::endl;
+    std::cout << "Spawning " << count << " particles" << std::endl;
+
+    for (int i = 0; i < count; i++) {
+        Particle p;
+        p.pos = emitter.position;
+        p.vel = glm::sphericalRand(1.0f) * emitter.initialSpeed;
+        p.lifetime = emitter.particleLifetime;
+        p.age = 0.0f;
+
+        emitter.particleList.push_back(p);
+    }
 }
