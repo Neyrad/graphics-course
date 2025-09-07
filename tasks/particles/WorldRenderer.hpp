@@ -44,6 +44,8 @@ private:
   etna::Buffer constants;
 
   glm::mat4x4 worldViewProj;
+  glm::mat4x4 view;
+  glm::vec3 cameraPos;
 
   float time;
   glm::vec2 mouse;

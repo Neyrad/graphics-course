@@ -15,10 +15,10 @@ WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
   emitters.push_back(Emitter{
-    .position = glm::vec3(0.0f, 0.0f, 0.0f),
-    .spawnRate = 10.0f,          
-    .particleLifetime = 2.0f,    
-    .initialSpeed = 1.0f,        
+    .position = glm::vec3(0.0f, 0.0f, 0.2f),
+    .spawnRate = 4.0f,          
+    .particleLifetime = 0.1f,    
+    .initialSpeed = 0.0f,        
     .particleList = {}
   });
 
@@ -152,6 +152,8 @@ void WorldRenderer::update(FramePacket& FP)
   {
     const float aspect = float(resolution.x) / float(resolution.y);
     worldViewProj = FP.mainCam.projTm(aspect) * FP.mainCam.viewTm();
+    view = FP.mainCam.viewTm();
+    cameraPos = FP.mainCam.position;
   }
 
   float deltaTime = FP.time - this->time;
@@ -291,14 +293,18 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
     struct PushConsts {
         glm::mat4 viewProj;
+        glm::mat4 view;
+        glm::vec4 camPos;
         glm::vec3 pos;
         float size;
         float alpha;
+        float yaw;
+        float pitch;
     };
 
     for (auto& emitter : emitters) {
         for (auto& p : emitter.particleList) {
-            PushConsts pc{worldViewProj, p.pos, 1.0f, 1.0f - (p.age / p.lifetime)};
+            PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), p.pos, 1.0f, 1.0f - (p.age / p.lifetime), yaw, pitch};
             cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
                                   vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
                                   0, sizeof(PushConsts), &pc);
@@ -340,7 +346,7 @@ void WorldRenderer::drawGui()
   }
 
   if (ImGui::CollapsingHeader("Emitter")) {
-    ImGui::SliderFloat3("Position", &emitters[0].position.x, -10.f, 10.f);
+    ImGui::SliderFloat3("Position", &emitters[0].position.x, -1.f, 1.f);
     ImGui::SliderFloat("Spawn rate", &emitters[0].spawnRate, 0.1f, 100.f);
     ImGui::SliderFloat("Lifetime", &emitters[0].particleLifetime, 0.1f, 10.f);
     ImGui::SliderFloat("Initial speed", &emitters[0].initialSpeed, 0.f, 10.f);
@@ -360,9 +366,9 @@ void WorldRenderer::drawGui()
 void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
     
     int count = static_cast<int>(100 * emitter.spawnRate * deltaTime);
-    std::cout << "emitter.spawnRate = " << emitter.spawnRate << std::endl;
-    std::cout << "deltaTime = " << deltaTime << std::endl;
-    std::cout << "Spawning " << count << " particles" << std::endl;
+    //std::cout << "emitter.spawnRate = " << emitter.spawnRate << std::endl;
+    //std::cout << "deltaTime = " << deltaTime << std::endl;
+    //std::cout << "Spawning " << count << " particles" << std::endl;
 
     for (int i = 0; i < count; i++) {
         Particle p;
