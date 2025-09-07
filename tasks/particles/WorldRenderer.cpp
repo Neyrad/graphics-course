@@ -146,13 +146,68 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
   });
 }
 
+#include <glm/gtx/string_cast.hpp>
+
+
+
 void WorldRenderer::update(FramePacket& FP)
 {
   // calc camera matrix
   {
+    //FP.mainCam.position = glm::vec3{0.0f, 0.0f, 5.0f};
+
+    
+
+
     const float aspect = float(resolution.x) / float(resolution.y);
     worldViewProj = FP.mainCam.projTm(aspect) * FP.mainCam.viewTm();
     view = FP.mainCam.viewTm();
+
+    //std::cout << "position.x = " << FP.mainCam.position.x << std::endl;
+    //std::cout << "position.y = " << FP.mainCam.position.y << std::endl;
+    //std::cout << "position.z = " << FP.mainCam.position.z << std::endl;
+    //std::cout << "fov = " << FP.mainCam.fov << std::endl;
+    //std::cout << "aspect = " << aspect << std::endl;
+
+   //Camera cam = FP.mainCam;
+
+  //  glm::mat4 viewItm = cam.viewItm();   // твоя world transform (translate * rot)
+    //glm::mat4 view = cam.viewTm();       // inverse(viewItm)
+    //glm::mat4 proj = cam.projTm(aspect);
+   // glm::mat4 viewProj = proj * view;
+/*
+    std::cout << "viewItm:\n" << glm::to_string(viewItm) << "\n";
+    std::cout << "view:\n" << glm::to_string(view) << "\n";
+    std::cout << "proj:\n" << glm::to_string(proj) << "\n";
+
+    float detRot = glm::determinant(glm::mat3(glm::mat4_cast(cam.rotation)));
+    float detViewItm = glm::determinant(glm::mat3(viewItm));
+    float detView = glm::determinant(glm::mat3(view));
+    std::cout << "detRot=" << detRot << " detViewItm=" << detViewItm << " detView=" << detView << "\n";
+
+    auto project = [&](glm::vec3 p){
+        glm::vec4 clip = viewProj * glm::vec4(p, 1.0f);
+        glm::vec3 ndc = glm::vec3(clip) / clip.w; // нормалізуємо
+        std::cout << "world " << glm::to_string(p) << " -> ndc " << glm::to_string(ndc) << " clip.w=" << clip.w << "\n";
+    };
+
+    project({1,0,0});
+    project({0,1,0});
+    project({0,0,1});
+    project({0,0,-1});
+*/
+
+    /*
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            std::cout << FP.mainCam.viewTm()[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }
+    */
+
     cameraPos = FP.mainCam.position;
   }
 
@@ -266,9 +321,11 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
+    glm::mat4x4 invViewProj = glm::inverse(worldViewProj);
+
     struct Params {
-      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time; float planetSpeed;
-    } params{resolution, mouse, yaw, pitch, time, planetSpeed};
+      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time; float planetSpeed; glm::mat4x4 invViewProj; glm::vec3 cameraPos;
+    } params{resolution, mouse, yaw, pitch, time, planetSpeed, invViewProj, cameraPos};
 
     cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -302,8 +359,21 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         float pitch;
     };
 
+    //glm::vec4 cameraPosition = glm::vec4{0.0f, 0.0f, 5.0f, 0.0f};
+    //glm::vec4 posWorld = glm::inverse(view) * cameraPosition;
+    
+
+
     for (auto& emitter : emitters) {
         for (auto& p : emitter.particleList) {
+          /*
+            std::cout << "glm::vec3(posWorld).x + p.pos.x = " << glm::vec3(posWorld).x + p.pos.x << std::endl;
+            std::cout << "glm::vec3(posWorld).y + p.pos.y = " << glm::vec3(posWorld).y + p.pos.y << std::endl;
+            std::cout << "glm::vec3(posWorld).z + p.pos.z = " << glm::vec3(posWorld).z + p.pos.z << std::endl;
+            std::cout << "p.pos.x = " << p.pos.x << std::endl;
+            std::cout << "p.pos.y = " << p.pos.y << std::endl;
+            std::cout << "p.pos.z = " << p.pos.z << std::endl;
+          */
             PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), p.pos, 1.0f, 1.0f - (p.age / p.lifetime), yaw, pitch};
             cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
                                   vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
@@ -319,7 +389,7 @@ void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
 
-  ImGui::SliderFloat("Planet speed", &planetSpeed, -20.0f, 20.0f);
+  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.0f, 20.0f);
 
   ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 300.0f);
 

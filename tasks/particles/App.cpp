@@ -28,6 +28,8 @@ App::App()
   // TODO: this is bad design, this initialization is dependent on the current ImGui context, but we
   // pass it implicitly here instead of explicitly. Beware if trying to do something tricky.
   ImGuiRenderer::enableImGuiForWindow(mainWindow->native());
+
+  mainCam.lookAt({0, 0, 5}, {0, 0, 0}, {0, 1, 0});
 }
 
 App::~App()

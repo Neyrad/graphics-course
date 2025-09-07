@@ -20,6 +20,8 @@ layout(push_constant) uniform params {
   float pitch;
   float iTime;
   float planetSpeed;
+  mat4 invViewProj; // inverse(proj * view) - краще передавати з CPU
+  vec3 cameraPos;   // опціонально — можна передати позицію камери
 };
 
 const vec3 light = vec3(0, -6, -5);
@@ -242,50 +244,25 @@ vec3 triplanarProjectionSphere(vec3 normal, vec3 worldPos)
     return textureColor;
 }
 
-float max3(vec3 rd)
-{
-    return max(max(rd.x, rd.y), rd.z);
-}
-
+float max3(vec3 rd) { return max(max(rd.x, rd.y), rd.z); }
 float rand(float co) { return fract(sin(co*(91.3458)) * 47453.5453); }
 float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
 float rand(vec3 co){ return rand(co.xy+rand(co.z)); }
 
 vec4 Cubemap(in vec2 fragCoord, in vec3 rayDir)
 {
-    // Normalize ray direction
     vec3 rd = normalize(rayDir);
-
-    // Define base colors
-    //vec3 spaceColor = vec3(0.0, 0.0, 0.0); // Dark background (space)
-    //vec3 waveColor = vec3(0.15, 0.75, 0.03);  // Wave color
-
     vec3 spaceColor = uparams.spaceColor;
     vec3 waveColor = uparams.waveColor;
-
-    // Base color for space
     vec3 col = spaceColor;
-
-    // Calculate wave movement based on time and direction
-    float waveSpeed = 0.5; // Speed of the wave movement
-    vec3 waveDirection = normalize(vec3(0.0, -1.0, 0.0)); // Direction of the waves in 3D space
-
-    // Calculate a repeating pattern of stripes using the dot product
-    // This creates periodic stripes based on ray direction and time
-    float stripeWidth = 0.1; // Width of each stripe (adjust for more or fewer stripes)
-    float wavePattern = sin(dot(rd, waveDirection) * 20 + iTime * waveSpeed); // Higher multiplier = more stripes
-
-    // Apply a power function to make the stripes sharper and more intense
-    float stripes = pow(abs(wavePattern), 3.0); // Increase the power for more intense stripes
-
-    // Define intensity threshold to make the stripes sharp and avoid soft transitions
-    float intensityThreshold = 0.5; // Stripes will appear above this threshold
-    stripes = step(intensityThreshold, stripes); // Use step() to create sharp transitions
-
-    // Apply the stripes to the background color
+    float waveSpeed = 0.5;
+    vec3 waveDirection = normalize(vec3(0.0, -1.0, 0.0));
+    float stripeWidth = 0.1;
+    float wavePattern = sin(dot(rd, waveDirection) * 20 + iTime * waveSpeed);
+    float stripes = pow(abs(wavePattern), 3.0);
+    float intensityThreshold = 0.5;
+    stripes = step(intensityThreshold, stripes);
     col = mix(col, waveColor, stripes);
-
-    // Return the final color with the wave stripes effect
     return vec4(col, 1.0);
 }
 
@@ -293,50 +270,54 @@ void main() {
     bool hit;
     float id;
 
-    // Shader setup
-    vec2 uv = (vec2(gl_FragCoord) - 0.5 * iResolution.xy) / iResolution.y;
+    // --- Звична UV (залишив як у вас) ---
+    vec2 fragCoord = vec2(gl_FragCoord.xy);
+    vec2 uv = (fragCoord - 0.5 * vec2(iResolution)) / float(iResolution.y);
 
-    // Set camera position and look-at target
-    vec3 cameraPosition = vec3(0, 0, 5);
-    vec3 lookAt = vec3(0, 0, 0); // Look at the origin
-    
-    vec2 Mouse = vec2(iMouse) / vec2(iResolution);
-    
-    // Apply rotation to camera position
-    mat3 rotX = rotateX(pitch);
-    mat3 rotY = rotateY(yaw);
-    vec3 rotatedCamera = rotY * rotX * (cameraPosition - lookAt) + lookAt;
-    
-    // Create camera matrix
-    mat3 camMat = camera(rotatedCamera, lookAt, vec3(0, 1, 0));
-    
-    // Compute ray direction
-    vec3 rayDir = camMat * normalize(vec3(uv * uparams.fov, -1.0)); // Adjust FOV
+    // --- ПАРТІЯ: побудова променя через invViewProj ---
+    // Побудуємо два clip-space положення: на near (z=-1) і far (z=+1)
+    vec4 clipNear = vec4(uv.xy, -1.0, 1.0);
+    vec4 clipFar  = vec4(uv.xy,  1.0, 1.0);
 
-    // Trace rays and objects in the scene
+    // Перетворюємо з clip -> world за допомогою invViewProj
+    vec4 worldNear4 = invViewProj * clipNear;
+    vec4 worldFar4  = invViewProj * clipFar;
+
+    vec3 worldNear = worldNear4.xyz / worldNear4.w;
+    vec3 worldFar  = worldFar4.xyz  / worldFar4.w;
+
+    // Промінь: від worldNear у бік worldFar
+    //vec3 rayOrigin = worldNear;
+    vec3 rayDir = normalize(worldFar - worldNear);
+
+    // Якщо у вас є окремо cameraPos (наприклад для точкових розрахунків освітлення),
+    // ви можете використовувати cameraPos замість worldNear як origin:
+    vec3 rayOrigin = cameraPos;
+
+    // Тепер трасуємо так само як було (передаємо матрицю обертання/м, тут поки identity)
     vec4 planet[N_PLANETS];
-    vec3 p = trace(uv, rotatedCamera, rayDir, hit, id, mat3(1.0), planet); // Apply object rotation (identity matrix for now)
-    
+    vec3 p = trace(uv, rayOrigin, rayDir, hit, id, mat3(1.0), planet);
+
+    // Фон
     vec3 color = Cubemap(uv, rayDir).rgb;
 
     if (hit)
     {
-        vec3 objColor = vec3(0.0); // Default object color
-        
+        vec3 objColor = vec3(0.0);
+
         vec3 normal     = generateNormal(uv, p, 0.001, mat3(1.0), planet);
         vec3 lightDir   = normalize(light - p);
-        vec3 viewDir    = normalize(rotatedCamera - p);
+        vec3 viewDir    = normalize(rayOrigin - p);
         vec3 halfwayDir = normalize(lightDir + viewDir);
-        
-        // Simple lighting
+
         float diff = max(dot(normal, lightDir), 0.0);
         float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
-        
+
         if (id < 10.)
         {
             objColor = triplanarProjectionSphere(normal, p - planet[int(id)].xyz);
         }
-        else          
+        else
         {
             id = id * (1. / 10.);
             objColor = triplanarProjection(normal, p - planet[int(id)].xyz);
@@ -345,5 +326,4 @@ void main() {
     }
 
     outColor = vec4(color, 1.0);
-    //outColor = vec4(uparams.baseColor, 1.0);
 }
