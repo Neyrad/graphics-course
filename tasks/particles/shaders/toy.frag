@@ -22,9 +22,10 @@ layout(push_constant) uniform params {
   float planetSpeed;
   mat4 invViewProj; // inverse(proj * view) - краще передавати з CPU
   vec3 cameraPos;   // опціонально — можна передати позицію камери
+  vec3 lightPos;
 };
 
-const vec3 light = vec3(0, -6, -5);
+//const vec3 light = pc.lightPos;//vec3(0, -6, -5);
 //const float fov = 1.0; // Wider FOV for a better perspective
 const int maxSteps = 70;
 const float eps = 0.01;
@@ -304,6 +305,7 @@ void main() {
     if (hit)
     {
         vec3 objColor = vec3(0.0);
+        vec3 light = lightPos;
 
         vec3 normal     = generateNormal(uv, p, 0.001, mat3(1.0), planet);
         vec3 lightDir   = normalize(light - p);

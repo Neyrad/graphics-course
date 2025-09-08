@@ -16,12 +16,13 @@ WorldRenderer::WorldRenderer()
 {
   emitters.push_back(Emitter{
     .position = glm::vec3(0.0f, 0.0f, 0.2f),
-    .spawnRate = 4.0f,          
-    .particleLifetime = 0.1f,    
-    .initialSpeed = 0.0f,        
+    .spawnRate = 15.0f,          
+    .particleLifetime = 1.0f,    
+    .initialSpeed = 1.0f,        
     .particleList = {}
   });
 
+  lightPos = glm::vec3(0.0f, -6.0f, -5.0f);
 }
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
@@ -324,8 +325,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     glm::mat4x4 invViewProj = glm::inverse(worldViewProj);
 
     struct Params {
-      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time; float planetSpeed; glm::mat4x4 invViewProj; glm::vec3 cameraPos;
-    } params{resolution, mouse, yaw, pitch, time, planetSpeed, invViewProj, cameraPos};
+      glm::uvec2 res; glm::uvec2 mouse; float yaw; float pitch; float time; float planetSpeed; glm::mat4x4 invViewProj; glm::vec3 cameraPos; glm::vec3 lightPos;
+    } params{resolution, mouse, yaw, pitch, time, planetSpeed, invViewProj, cameraPos, lightPos};
 
     cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -340,7 +341,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         emittersInfo.getDescriptorLayoutId(0),
         cmd_buf,
         {
-            etna::Binding{ 0, texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) }
+            etna::Binding{ 0, texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) },
+            etna::Binding{ 2, constants.genBinding() }
         }
     );
 
@@ -358,8 +360,18 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         float yaw;
         float pitch;
     };
-
-    //glm::vec4 cameraPosition = glm::vec4{0.0f, 0.0f, 5.0f, 0.0f};
+/*
+    std::cout << offsetof(PushConsts, viewProj) << "\n";
+    std::cout << offsetof(PushConsts, view) << "\n";
+    std::cout << offsetof(PushConsts, camPos) << "\n";
+    std::cout << offsetof(PushConsts, pos) << "\n";
+    std::cout << offsetof(PushConsts, size) << "\n";
+    std::cout << offsetof(PushConsts, alpha) << "\n";
+    std::cout << offsetof(PushConsts, yaw) << "\n";
+    std::cout << offsetof(PushConsts, pitch) << "\n";
+    std::cout << offsetof(PushConsts, color) << "\n";
+    exit(0);
+ */   //glm::vec4 cameraPosition = glm::vec4{0.0f, 0.0f, 5.0f, 0.0f};
     //glm::vec4 posWorld = glm::inverse(view) * cameraPosition;
     
 
@@ -393,10 +405,6 @@ void WorldRenderer::drawGui()
 
   ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 300.0f);
 
-  float fov = uniformParams.fov;
-  ImGui::SliderFloat("FOV", &fov, 0.1f, 10.0f);
-  uniformParams.fov = fov;
-
   float spaceColor[3]{uniformParams.spaceColor.r, uniformParams.spaceColor.g, uniformParams.spaceColor.b};
   ImGui::ColorEdit3(
     "Cubemap Space Color", spaceColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
@@ -408,7 +416,6 @@ void WorldRenderer::drawGui()
   uniformParams.waveColor = {waveColor[0], waveColor[1], waveColor[2]};
 
   if (ImGui::Button("Default values")) {
-    uniformParams.fov = 1.0f;
     planetSpeed = 1.0f;
     scale = 20.0f;
     uniformParams.spaceColor = {0.0f, 0.0f, 0.0f};
@@ -416,11 +423,18 @@ void WorldRenderer::drawGui()
   }
 
   if (ImGui::CollapsingHeader("Emitter")) {
-    ImGui::SliderFloat3("Position", &emitters[0].position.x, -1.f, 1.f);
+    ImGui::SliderFloat3("Position", &emitters[0].position.x, -100.f, 100.f);
     ImGui::SliderFloat("Spawn rate", &emitters[0].spawnRate, 0.1f, 100.f);
     ImGui::SliderFloat("Lifetime", &emitters[0].particleLifetime, 0.1f, 10.f);
     ImGui::SliderFloat("Initial speed", &emitters[0].initialSpeed, 0.f, 10.f);
+
+    float particleColor[3]{uniformParams.particleColor.r, uniformParams.particleColor.g, uniformParams.particleColor.b};
+    ImGui::ColorEdit3(
+      "Particles Color", particleColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
+    uniformParams.particleColor = {particleColor[0], particleColor[1], particleColor[2]};
   }
+
+  ImGui::SliderFloat3("Light Position", &lightPos.x, -200.f, 200.f);
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",

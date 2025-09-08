@@ -46,6 +46,7 @@ private:
   glm::mat4x4 worldViewProj;
   glm::mat4x4 view;
   glm::vec3 cameraPos;
+  glm::vec3 lightPos;
 
   float time;
   glm::vec2 mouse;
@@ -62,7 +63,7 @@ private:
     .pad1 = {},
     .waveColor = {0.15f, 0.75f, 0.03f},
     .pad2 = {},
-    .fov = 1.0f,
+    .particleColor = {0.0f, 0.0f, 1.0f},
     .pad3 = {}
   };
 
