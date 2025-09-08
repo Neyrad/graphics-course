@@ -50,7 +50,9 @@ void App::run()
 
     processInput(diffTime);
 
+    //std::cout << "app.cpp drawing frame" << std::endl;
     drawFrame();
+    //std::cout << "app.cpp drawing frame DONE" << std::endl;
   }
 }
 
@@ -90,6 +92,7 @@ void App::processInput(float dt)
 
 void App::drawFrame()
 {
+  //std::cout << "app.cpp draw frame run" << std::endl;
   auto time = static_cast<float>(windowing.getTime());
   FramePacket FP;
   FP.mainCam = mainCam;
@@ -98,8 +101,11 @@ void App::drawFrame()
   FP.pitch = pitch;
   FP.time = time;
 
+  //std::cout << "app.cpp draw frame run 1" << std::endl;
   renderer->update(FP);
+  //std::cout << "app.cpp draw frame run 2" << std::endl;
   renderer->drawFrame();
+  //std::cout << "app.cpp draw frame finish" << std::endl;
 }
 
 void App::moveCam(Camera& cam, const Keyboard& kb, float dt)

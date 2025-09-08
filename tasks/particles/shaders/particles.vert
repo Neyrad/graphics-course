@@ -1,9 +1,14 @@
 #version 450
 
+#extension GL_GOOGLE_include_directive : require
+#include "UniformParams.h"
+
+layout(binding = 1, set = 0) uniform AppData
+{
+  UniformParams uparams;
+};
+
 layout(push_constant) uniform PushConsts {
-    mat4 viewProj;   // матриця камери
-    mat4 view;
-    vec4 camPos;
     vec4 color;
     vec3 pos;        // позиція частинки у світі
     float size;      // розмір частинки
@@ -38,8 +43,8 @@ void main() {
 
 
     // Беремо вектори "право" і "вгору" з view-матриці
-    vec3 camRight = vec3(pc.view[0][0], pc.view[1][0], pc.view[2][0]);
-    vec3 camUp    = vec3(pc.view[0][1], pc.view[1][1], pc.view[2][1]);
+    vec3 camRight = vec3(uparams.view[0][0], uparams.view[1][0], uparams.view[2][0]);
+    vec3 camUp    = vec3(uparams.view[0][1], uparams.view[1][1], uparams.view[2][1]);
 
     // Будуємо вершину квадратика у world space
     vec3 worldPos = pc.pos + (camRight * corner.x + camUp * corner.y) * size;
@@ -47,7 +52,7 @@ void main() {
 
 
 
-    gl_Position = pc.viewProj * vec4(worldPos, 1.0);
+    gl_Position = uparams.viewProj * vec4(worldPos, 1.0);
 
     vUV = (corner + 1.0) * 0.5;
     vAlpha = pc.alpha;

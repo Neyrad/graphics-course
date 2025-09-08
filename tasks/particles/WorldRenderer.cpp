@@ -145,6 +145,8 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
 
 void WorldRenderer::update(FramePacket& FP)
 {
+  //std::cout << "update called" << std::endl;
+
   // calc camera matrix
   {
     //FP.mainCam.position = glm::vec3{0.0f, 0.0f, 5.0f};
@@ -234,6 +236,8 @@ void WorldRenderer::update(FramePacket& FP)
     // спавн нових частинок
     spawnParticles(emitter, deltaTime);
 
+    //std::cout << "particles spawned" << std::endl;
+
     // оновлення існуючих
     for (auto& p : emitter.particleList) {
         p.age += deltaTime;
@@ -242,11 +246,15 @@ void WorldRenderer::update(FramePacket& FP)
         }
     }
 
+    //std::cout << "existing updated" << std::endl;
+
     // видалення "мертвих"
     emitter.particleList.erase(
         std::remove_if(emitter.particleList.begin(), emitter.particleList.end(),
                        [](auto& p) { return p.age >= p.lifetime; }),
         emitter.particleList.end());
+
+    //std::cout << "dead deleted" << std::endl;
 
     std::sort(emitter.particleList.begin(), emitter.particleList.end(),
               [&](const Particle& a, const Particle& b){
@@ -254,6 +262,8 @@ void WorldRenderer::update(FramePacket& FP)
                   float db = glm::distance(b.pos, cameraPos);
                   return da > db; // дальніші перші
               });
+
+    //std::cout << "particles sorted" << std::endl;
   }
 
 }
@@ -261,6 +271,8 @@ void WorldRenderer::update(FramePacket& FP)
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                 vk::Image target_image, vk::ImageView target_image_view)
 {
+  //std::cout << "rendererWorld run " << std::endl;
+
   // --- PASS 1: render to offscreen 'image' ---
   etna::set_state(cmd_buf, image.get(),
                   vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -291,6 +303,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                   vk::ImageLayout::eShaderReadOnlyOptimal,
                   vk::ImageAspectFlagBits::eColor);
   etna::flush_barriers(cmd_buf);
+
+  //std::cout << "rendererWorld run pass 2" << std::endl;
 
   // --- PASS 2: render to swapchain, sample 'image' ---
   {
@@ -332,6 +346,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
     cmd_buf.draw(3, 1, 0, 0);
 
+    //std::cout << "rendererWorld run particles" << std::endl;
+
     // --- PARTICLES ---
     cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
 
@@ -341,6 +357,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         cmd_buf,
         {
             etna::Binding{ 0, texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) },
+ 
+            etna::Binding{ 1, constants.genBinding() }
         }
     );
 
@@ -349,9 +367,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
 
     struct PushConsts {
-        glm::mat4 viewProj;
-        glm::mat4 view;
-        glm::vec4 camPos;
         glm::vec4 color;
         glm::vec3 pos;
         float size;
@@ -359,20 +374,13 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         float yaw;
         float pitch;
     };
-/*
-    std::cout << offsetof(PushConsts, viewProj) << "\n";
-    std::cout << offsetof(PushConsts, view) << "\n";
-    std::cout << offsetof(PushConsts, camPos) << "\n";
-    std::cout << offsetof(PushConsts, pos) << "\n";
-    std::cout << offsetof(PushConsts, size) << "\n";
-    std::cout << offsetof(PushConsts, alpha) << "\n";
-    std::cout << offsetof(PushConsts, yaw) << "\n";
-    std::cout << offsetof(PushConsts, pitch) << "\n";
-    std::cout << offsetof(PushConsts, color) << "\n";
-    exit(0);
- */   //glm::vec4 cameraPosition = glm::vec4{0.0f, 0.0f, 5.0f, 0.0f};
-    //glm::vec4 posWorld = glm::inverse(view) * cameraPosition;
+
+    uniformParams.viewProj = worldViewProj;
+    uniformParams.view = view;
+    uniformParams.camPos = glm::vec4(cameraPos, 1);
     
+    //std::cout << "rendererWorld run sorting " << std::endl;
+
     std::sort(emitters.begin(), emitters.end(),
           [&](const Emitter& a, const Emitter& b){
               float da = glm::distance(a.position, cameraPos);
@@ -380,24 +388,28 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
               return da > db; // дальніші перші
           });
 
+    //std::cout << "rendererWorld run loops" << std::endl;
+
     for (auto& emitter : emitters) {
+        //std::cout << "rendererWorld run loops 1" << std::endl;
         for (auto& p : emitter.particleList) {
-          /*
-            std::cout << "glm::vec3(posWorld).x + p.pos.x = " << glm::vec3(posWorld).x + p.pos.x << std::endl;
-            std::cout << "glm::vec3(posWorld).y + p.pos.y = " << glm::vec3(posWorld).y + p.pos.y << std::endl;
-            std::cout << "glm::vec3(posWorld).z + p.pos.z = " << glm::vec3(posWorld).z + p.pos.z << std::endl;
-            std::cout << "p.pos.x = " << p.pos.x << std::endl;
-            std::cout << "p.pos.y = " << p.pos.y << std::endl;
-            std::cout << "p.pos.z = " << p.pos.z << std::endl;
-          */
-            PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), glm::vec4(emitter.particleColor, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime), yaw, pitch};
+          //std::cout << "rendererWorld run loops 2" << std::endl;
+          //std::cout << "p.pox.x = " << p.pos.x << std::endl;
+
+          //std::cout << "rendererWorld run loops 3" << std::endl;
+            PushConsts pc{glm::vec4(emitter.particleColor, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime), yaw, pitch};
+            //std::cout << "rendererWorld run loops 4" << std::endl;
+            //std::cout << "PushConsts size = " << sizeof(PushConsts) << std::endl;
             cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
                                   vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
                                   0, sizeof(PushConsts), &pc);
+            //std::cout << "rendererWorld run loops 5" << std::endl;
 
             cmd_buf.draw(6, 1, 0, 0);
+            //std::cout << "rendererWorld run loops 6" << std::endl;
         }
     }
+    //std::cout << "rendererWorld finish " << std::endl;
   }
 }
 
@@ -441,6 +453,7 @@ void WorldRenderer::drawGui()
             .particleColor = {0.0f, 0.0f, 1.0f},
             .particleList = {}
         });
+        //std::cout << "New emitter added" << std::endl;
     }
 
     // Список усіх емітерів
@@ -489,7 +502,7 @@ void WorldRenderer::drawGui()
 }
 
 void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
-    
+    //std::cout << "Spawn paricles(): run" << std::endl;
     int count = static_cast<int>(emitter.spawnRate * deltaTime);
     //std::cout << "emitter.spawnRate = " << emitter.spawnRate << std::endl;
     //std::cout << "deltaTime = " << deltaTime << std::endl;
@@ -504,4 +517,5 @@ void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
 
         emitter.particleList.push_back(p);
     }
+    //std::cout << "Spawn paricles(): finish" << std::endl;
 }

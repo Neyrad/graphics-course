@@ -7,6 +7,9 @@
 
 struct UniformParams
 {
+  shader_mat4 viewProj;
+  shader_mat4 view;
+  shader_vec4 camPos;
   shader_vec4 planet[N_PLANETS];
   shader_vec3 spaceColor;
   float pad1;

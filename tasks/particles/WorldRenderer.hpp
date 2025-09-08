@@ -58,6 +58,9 @@ private:
 
   UniformParams uniformParams
   {
+    .viewProj = {},
+    .view = {},
+    .camPos = {},
     .planet = {},
     .spaceColor = {0.0f, 0.0f, 0.0f},
     .pad1 = {},
