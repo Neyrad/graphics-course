@@ -84,6 +84,7 @@ private:
     float spawnRate;
     float particleLifetime;
     float initialSpeed;
+    float particleSize;
     std::vector<Particle> particleList;
   };
 

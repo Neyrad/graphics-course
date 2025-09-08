@@ -18,7 +18,8 @@ WorldRenderer::WorldRenderer()
     .position = glm::vec3(0.0f, 0.0f, 0.2f),
     .spawnRate = 15.0f,          
     .particleLifetime = 1.0f,    
-    .initialSpeed = 1.0f,        
+    .initialSpeed = 1.0f,
+    .particleSize = 0.01f,
     .particleList = {}
   });
 
@@ -386,7 +387,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
             std::cout << "p.pos.y = " << p.pos.y << std::endl;
             std::cout << "p.pos.z = " << p.pos.z << std::endl;
           */
-            PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), p.pos, 1.0f, 1.0f - (p.age / p.lifetime), yaw, pitch};
+            PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime), yaw, pitch};
             cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
                                   vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
                                   0, sizeof(PushConsts), &pc);
@@ -427,6 +428,7 @@ void WorldRenderer::drawGui()
     ImGui::SliderFloat("Spawn rate", &emitters[0].spawnRate, 0.1f, 100.f);
     ImGui::SliderFloat("Lifetime", &emitters[0].particleLifetime, 0.1f, 10.f);
     ImGui::SliderFloat("Initial speed", &emitters[0].initialSpeed, 0.f, 10.f);
+    ImGui::SliderFloat("Size", &emitters[0].particleSize, 0.f, 0.1f);
 
     float particleColor[3]{uniformParams.particleColor.r, uniformParams.particleColor.g, uniformParams.particleColor.b};
     ImGui::ColorEdit3(

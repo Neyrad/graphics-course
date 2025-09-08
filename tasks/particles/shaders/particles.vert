@@ -31,7 +31,7 @@ void main() {
     vec2 corner = quadVerts[gl_VertexIndex];
 
     // Простий квадратик у world space
-    float size = pc.size / 100;
+    float size = pc.size;
     //vec3 worldPos = pc.pos + vec3(corner * size, 0.0);
 
 
