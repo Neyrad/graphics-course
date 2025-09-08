@@ -4,6 +4,7 @@ layout(push_constant) uniform PushConsts {
     mat4 viewProj;   // матриця камери
     mat4 view;
     vec4 camPos;
+    vec4 color;
     vec3 pos;        // позиція частинки у світі
     float size;      // розмір частинки
     float alpha;     // прозорість (передається у frag)
@@ -12,9 +13,9 @@ layout(push_constant) uniform PushConsts {
 } pc;
 
 
-layout(location = 0) out vec2 vUV;
-layout(location = 1) out float vAlpha;
-//layout(location = 2) out vec4 vColor;
+layout(location = 0) out vec4 vColor;
+layout(location = 1) out vec2 vUV;
+layout(location = 2) out float vAlpha;
 
 // прості координати квадрата (-1..1)
 const vec2 quadVerts[6] = vec2[](
@@ -50,5 +51,5 @@ void main() {
 
     vUV = (corner + 1.0) * 0.5;
     vAlpha = pc.alpha;
-    //vColor = pc.color;
+    vColor = pc.color;
 }

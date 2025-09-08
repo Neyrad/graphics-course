@@ -341,7 +341,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         cmd_buf,
         {
             etna::Binding{ 0, texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) },
-            etna::Binding{ 2, constants.genBinding() }
         }
     );
 
@@ -353,6 +352,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         glm::mat4 viewProj;
         glm::mat4 view;
         glm::vec4 camPos;
+        glm::vec4 color;
         glm::vec3 pos;
         float size;
         float alpha;
@@ -390,7 +390,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
             std::cout << "p.pos.y = " << p.pos.y << std::endl;
             std::cout << "p.pos.z = " << p.pos.z << std::endl;
           */
-            PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime), yaw, pitch};
+            PushConsts pc{worldViewProj, view, glm::vec4(cameraPos, 1), glm::vec4(emitter.particleColor, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime), yaw, pitch};
             cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
                                   vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
                                   0, sizeof(PushConsts), &pc);
@@ -438,6 +438,7 @@ void WorldRenderer::drawGui()
             .particleLifetime = 1.0f,
             .initialSpeed = 1.0f,
             .particleSize = 0.01f,
+            .particleColor = {0.0f, 0.0f, 1.0f},
             .particleList = {}
         });
     }
@@ -454,9 +455,10 @@ void WorldRenderer::drawGui()
             ImGui::SliderFloat("Initial speed", &emitters[i].initialSpeed, 0.f, 10.f);
             ImGui::SliderFloat("Size", &emitters[i].particleSize, 0.f, 0.1f);
 
-            float particleColor[3] = {uniformParams.particleColor.r, uniformParams.particleColor.g, uniformParams.particleColor.b};
-            ImGui::ColorEdit3("Particle Color", particleColor);
-            uniformParams.particleColor = {particleColor[0], particleColor[1], particleColor[2]};
+            float color[3] = {emitters[i].particleColor.r, emitters[i].particleColor.g, emitters[i].particleColor.b};
+            ImGui::ColorEdit3("Particle Color", color);
+            emitters[i].particleColor = {color[0], color[1], color[2]};
+
 
             if (ImGui::Button("Remove Emitter")) {
                 emitters.erase(emitters.begin() + i);

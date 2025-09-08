@@ -63,8 +63,6 @@ private:
     .pad1 = {},
     .waveColor = {0.15f, 0.75f, 0.03f},
     .pad2 = {},
-    .particleColor = {0.0f, 0.0f, 1.0f},
-    .pad3 = {}
   };
 
   struct Planet {
@@ -85,6 +83,7 @@ private:
     float particleLifetime;
     float initialSpeed;
     float particleSize;
+    glm::vec3 particleColor;
     std::vector<Particle> particleList;
   };
 

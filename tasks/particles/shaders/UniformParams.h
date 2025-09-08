@@ -12,8 +12,6 @@ struct UniformParams
   float pad1;
   shader_vec3 waveColor;
   float pad2;
-  shader_vec3 particleColor;
-  float pad3;
 };
 
 
