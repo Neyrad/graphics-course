@@ -14,15 +14,6 @@
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
-  emitters.push_back(Emitter{
-    .position = glm::vec3(0.0f, 0.0f, 0.2f),
-    .spawnRate = 15.0f,          
-    .particleLifetime = 1.0f,    
-    .initialSpeed = 1.0f,
-    .particleSize = 0.01f,
-    .particleList = {}
-  });
-
   lightPos = glm::vec3(0.0f, -6.0f, -5.0f);
 }
 
@@ -256,6 +247,13 @@ void WorldRenderer::update(FramePacket& FP)
         std::remove_if(emitter.particleList.begin(), emitter.particleList.end(),
                        [](auto& p) { return p.age >= p.lifetime; }),
         emitter.particleList.end());
+
+    std::sort(emitter.particleList.begin(), emitter.particleList.end(),
+              [&](const Particle& a, const Particle& b){
+                  float da = glm::distance(a.pos, cameraPos);
+                  float db = glm::distance(b.pos, cameraPos);
+                  return da > db; // дальніші перші
+              });
   }
 
 }
@@ -375,7 +373,12 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
  */   //glm::vec4 cameraPosition = glm::vec4{0.0f, 0.0f, 5.0f, 0.0f};
     //glm::vec4 posWorld = glm::inverse(view) * cameraPosition;
     
-
+    std::sort(emitters.begin(), emitters.end(),
+          [&](const Emitter& a, const Emitter& b){
+              float da = glm::distance(a.position, cameraPos);
+              float db = glm::distance(b.position, cameraPos);
+              return da > db; // дальніші перші
+          });
 
     for (auto& emitter : emitters) {
         for (auto& p : emitter.particleList) {
@@ -423,20 +426,54 @@ void WorldRenderer::drawGui()
     uniformParams.waveColor = {0.15f, 0.75f, 0.03f};
   }
 
-  if (ImGui::CollapsingHeader("Emitter")) {
-    ImGui::SliderFloat3("Position", &emitters[0].position.x, -100.f, 100.f);
-    ImGui::SliderFloat("Spawn rate", &emitters[0].spawnRate, 0.1f, 100.f);
-    ImGui::SliderFloat("Lifetime", &emitters[0].particleLifetime, 0.1f, 10.f);
-    ImGui::SliderFloat("Initial speed", &emitters[0].initialSpeed, 0.f, 10.f);
-    ImGui::SliderFloat("Size", &emitters[0].particleSize, 0.f, 0.1f);
-
-    float particleColor[3]{uniformParams.particleColor.r, uniformParams.particleColor.g, uniformParams.particleColor.b};
-    ImGui::ColorEdit3(
-      "Particles Color", particleColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
-    uniformParams.particleColor = {particleColor[0], particleColor[1], particleColor[2]};
-  }
-
   ImGui::SliderFloat3("Light Position", &lightPos.x, -200.f, 200.f);
+
+  if (ImGui::CollapsingHeader("Emitters")) {
+
+    // Кнопка для додавання нового емітера
+    if (ImGui::Button("Add Emitter")) {
+        emitters.push_back(Emitter{
+            .position = {0.0f, 0.0f, 0.0f},
+            .spawnRate = 1500.0f,
+            .particleLifetime = 1.0f,
+            .initialSpeed = 1.0f,
+            .particleSize = 0.01f,
+            .particleList = {}
+        });
+    }
+
+    // Список усіх емітерів
+    for (size_t i = 0; i < emitters.size(); ++i) {
+        ImGui::PushID((int)i); // Щоб кнопки були унікальні
+
+        if (ImGui::TreeNode(("Emitter " + std::to_string(i)).c_str())) {
+            
+            ImGui::SliderFloat3("Position", &emitters[i].position.x, -20.f, 20.f);
+            ImGui::SliderFloat("Spawn rate", &emitters[i].spawnRate, 10.f, 10000.f);
+            ImGui::SliderFloat("Lifetime", &emitters[i].particleLifetime, 0.1f, 10.f);
+            ImGui::SliderFloat("Initial speed", &emitters[i].initialSpeed, 0.f, 10.f);
+            ImGui::SliderFloat("Size", &emitters[i].particleSize, 0.f, 0.1f);
+
+            float particleColor[3] = {uniformParams.particleColor.r, uniformParams.particleColor.g, uniformParams.particleColor.b};
+            ImGui::ColorEdit3("Particle Color", particleColor);
+            uniformParams.particleColor = {particleColor[0], particleColor[1], particleColor[2]};
+
+            if (ImGui::Button("Remove Emitter")) {
+                emitters.erase(emitters.begin() + i);
+                ImGui::TreePop();
+                ImGui::PopID();
+                break; // важливо, бо змінився вектор
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+}
+
+
+
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",
@@ -451,7 +488,7 @@ void WorldRenderer::drawGui()
 
 void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
     
-    int count = static_cast<int>(100 * emitter.spawnRate * deltaTime);
+    int count = static_cast<int>(emitter.spawnRate * deltaTime);
     //std::cout << "emitter.spawnRate = " << emitter.spawnRate << std::endl;
     //std::cout << "deltaTime = " << deltaTime << std::endl;
     //std::cout << "Spawning " << count << " particles" << std::endl;
