@@ -369,40 +369,33 @@ void WorldRenderer::drawGui()
     }
 
     for (size_t i = 0; i < emitters.size(); ++i) {
-        ImGui::PushID((int)i);
+      ImGui::PushID((int)i);
 
-        if (ImGui::TreeNode(("Emitter " + std::to_string(i)).c_str())) {
-              
-            float pos[3] = {emitters[i].position.x, emitters[i].position.y, emitters[i].position.z};
-            ImGui::SliderFloat3("Position", pos, 0.f, 1.f);
-            emitters[i].position = {pos[0], pos[1], pos[2]};
+      if (ImGui::TreeNode(("Emitter " + std::to_string(i)).c_str())) {            
+        float pos[3] = {emitters[i].position.x, emitters[i].position.y, emitters[i].position.z};
+        ImGui::SliderFloat3("Position", pos, -10.f, 10.f);
+        emitters[i].position = {pos[0], pos[1], pos[2]};
 
-            ImGui::SliderFloat("Spawn rate", &emitters[i].spawnRate, 10.f, 10000.f);
-            ImGui::SliderFloat("Lifetime", &emitters[i].particleLifetime, 0.1f, 10.f);
-            ImGui::SliderFloat("Initial speed", &emitters[i].initialSpeed, 0.f, 10.f);
-            ImGui::SliderFloat("Size", &emitters[i].particleSize, 0.f, 0.1f);
+        ImGui::SliderFloat("Spawn rate", &emitters[i].spawnRate, 10.f, 10000.f);
+        ImGui::SliderFloat("Lifetime", &emitters[i].particleLifetime, 0.1f, 10.f);
+        ImGui::SliderFloat("Initial speed", &emitters[i].initialSpeed, 0.f, 10.f);
+        ImGui::SliderFloat("Size", &emitters[i].particleSize, 0.f, 0.1f);
 
-            float color[3] = {emitters[i].particleColor.r, emitters[i].particleColor.g, emitters[i].particleColor.b};
-            ImGui::ColorEdit3("Particle Color", color);
-            emitters[i].particleColor = {color[0], color[1], color[2]};
+        float color[3] = {emitters[i].particleColor.r, emitters[i].particleColor.g, emitters[i].particleColor.b};
+        ImGui::ColorEdit3("Particle Color", color);
+        emitters[i].particleColor = {color[0], color[1], color[2]};
 
-
-            if (ImGui::Button("Remove Emitter")) {
-                emitters.erase(emitters.begin() + i);
-                ImGui::TreePop();
-                ImGui::PopID();
-                break;
-            }
-
+        if (ImGui::Button("Remove Emitter")) {
+            emitters.erase(emitters.begin() + i);
             ImGui::TreePop();
+            ImGui::PopID();
+            break;
         }
-
-        ImGui::PopID();
+        ImGui::TreePop();
+      }
+      ImGui::PopID();
     }
-}
-
-
-
+  }
 
   ImGui::Text(
     "Application average %.3f ms/frame (%.1f FPS)",
