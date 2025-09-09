@@ -8,6 +8,7 @@
 #include <imgui.h>
 
 #include <iostream>
+#include <numeric>
 
 #include "stb_image.h"
 
@@ -357,7 +358,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         cmd_buf,
         {
             etna::Binding{ 0, texture.genBinding(textureSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) },
- 
             etna::Binding{ 1, constants.genBinding() }
         }
     );
@@ -371,45 +371,31 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         glm::vec3 pos;
         float size;
         float alpha;
-        float yaw;
-        float pitch;
     };
 
     uniformParams.viewProj = worldViewProj;
     uniformParams.view = view;
     uniformParams.camPos = glm::vec4(cameraPos, 1);
-    
-    //std::cout << "rendererWorld run sorting " << std::endl;
 
-    std::sort(emitters.begin(), emitters.end(),
-          [&](const Emitter& a, const Emitter& b){
-              float da = glm::distance(a.position, cameraPos);
-              float db = glm::distance(b.position, cameraPos);
-              return da > db; // дальніші перші
-          });
+    emitterRenderOrder.resize(emitters.size());
+    std::iota(emitterRenderOrder.begin(), emitterRenderOrder.end(), 0); // 0,1,2...
+    std::sort(emitterRenderOrder.begin(), emitterRenderOrder.end(),
+        [&](size_t a, size_t b) {
+            float da = glm::distance(emitters[a].position, cameraPos);
+            float db = glm::distance(emitters[b].position, cameraPos);
+            return da > db; // або <, залежить як треба
+    });
 
-    //std::cout << "rendererWorld run loops" << std::endl;
-
-    for (auto& emitter : emitters) {
-        //std::cout << "rendererWorld run loops 1" << std::endl;
-        for (auto& p : emitter.particleList) {
-          //std::cout << "rendererWorld run loops 2" << std::endl;
-          //std::cout << "p.pox.x = " << p.pos.x << std::endl;
-
-          //std::cout << "rendererWorld run loops 3" << std::endl;
-            PushConsts pc{glm::vec4(emitter.particleColor, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime), yaw, pitch};
-            //std::cout << "rendererWorld run loops 4" << std::endl;
-            //std::cout << "PushConsts size = " << sizeof(PushConsts) << std::endl;
-            cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
-                                  vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                  0, sizeof(PushConsts), &pc);
-            //std::cout << "rendererWorld run loops 5" << std::endl;
-
-            cmd_buf.draw(6, 1, 0, 0);
-            //std::cout << "rendererWorld run loops 6" << std::endl;
-        }
+    for (size_t idx : emitterRenderOrder) {
+      auto& emitter = emitters[idx];
+      for (auto& p : emitter.particleList) {
+        PushConsts pc{glm::vec4(emitter.particleColor, 1), p.pos, emitter.particleSize, 1.0f - (p.age / p.lifetime)};
+        cmd_buf.pushConstants(emittersPipeline.getVkPipelineLayout(),
+                              vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                              0, sizeof(PushConsts), &pc);
+        cmd_buf.draw(6, 1, 0, 0);
+      }
     }
-    //std::cout << "rendererWorld finish " << std::endl;
   }
 }
 
@@ -461,8 +447,11 @@ void WorldRenderer::drawGui()
         ImGui::PushID((int)i); // Щоб кнопки були унікальні
 
         if (ImGui::TreeNode(("Emitter " + std::to_string(i)).c_str())) {
-            
-            ImGui::SliderFloat3("Position", &emitters[i].position.x, -20.f, 20.f);
+              
+            float pos[3] = {emitters[i].position.x, emitters[i].position.y, emitters[i].position.z};
+            ImGui::SliderFloat3("Position", pos, 0.f, 1.f);
+            emitters[i].position = {pos[0], pos[1], pos[2]};
+
             ImGui::SliderFloat("Spawn rate", &emitters[i].spawnRate, 10.f, 10000.f);
             ImGui::SliderFloat("Lifetime", &emitters[i].particleLifetime, 0.1f, 10.f);
             ImGui::SliderFloat("Initial speed", &emitters[i].initialSpeed, 0.f, 10.f);

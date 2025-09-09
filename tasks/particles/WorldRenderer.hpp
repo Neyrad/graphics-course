@@ -91,6 +91,7 @@ private:
   };
 
   std::vector<Emitter> emitters;
+  std::vector<size_t> emitterRenderOrder;
 
   void spawnParticles(Emitter& emitter, float deltaTime);
 

@@ -13,8 +13,6 @@ layout(push_constant) uniform PushConsts {
     vec3 pos;        // позиція частинки у світі
     float size;      // розмір частинки
     float alpha;     // прозорість (передається у frag)
-    float yaw;
-    float pitch;
 } pc;
 
 
