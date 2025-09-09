@@ -59,6 +59,7 @@ private:
   UniformParams uniformParams
   {
     .viewProj = {},
+    .invViewProj = {},
     .view = {},
     .camPos = {},
     .planet = {},
@@ -95,14 +96,12 @@ private:
 
   void spawnParticles(Emitter& emitter, float deltaTime);
 
-  //std::vector<Planet> planets{std::vector<Planet>(N_PLANETS)};
-
   std::vector<Planet> planets = {
-    {0.3f, 10.f},   // Planet 0
-    {1.1f, -16.f},  // Planet 1
-    {2.0f, 12.f},   // Planet 2
-    {4.5f, -24.f},  // Planet 3
-    {5.2f, -10.f}   // Planet 4
+    {0.3f, 10.f},
+    {1.1f, -16.f},
+    {2.0f, 12.f},
+    {4.5f, -24.f},
+    {5.2f, -10.f}
   };
 
   etna::Image image;

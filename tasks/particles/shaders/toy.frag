@@ -14,19 +14,14 @@ layout(binding = 2, set = 0) uniform AppData
 };
 
 layout(push_constant) uniform params {
+  vec4 cameraPos;
+  vec4 lightPos;
   uvec2 iResolution;
   uvec2 iMouse;
-  float yaw;
-  float pitch;
   float iTime;
   float planetSpeed;
-  mat4 invViewProj; // inverse(proj * view) - краще передавати з CPU
-  vec3 cameraPos;   // опціонально — можна передати позицію камери
-  vec3 lightPos;
 };
 
-//const vec3 light = pc.lightPos;//vec3(0, -6, -5);
-//const float fov = 1.0; // Wider FOV for a better perspective
 const int maxSteps = 70;
 const float eps = 0.01;
 const float maxDist = 100.0;
@@ -130,20 +125,6 @@ vec3 saturnSdf(in vec3 p, in vec2 uv, in mat3 m, in vec4 pos, float id)
 #define N_PLANETS 5
 vec3 sdf(in vec3 p, in vec2 uv, in mat3 m, out vec4 planet[N_PLANETS])
 {
-    /*
-    float orbitRadius = 9.0;
-    float orbitSpeed = iTime * (1. / 5.) * planetSpeed;
-    float coss = orbitRadius * cos(orbitSpeed);
-    float sinn = orbitRadius * sin(orbitSpeed);
-    float mcoss = coss * (1. / 5.);
-    float msinn = sinn * (1. / 5.);
-    planet[0] = vec4(2.*coss,   5.+mcoss,  sinn,      3.);
-    planet[1] = vec4(-coss,     -3.+mcoss, -sinn,     1.);
-    planet[2] = vec4(3.*sinn,   msinn,     coss,      2.);
-    planet[3] = vec4(1.+coss,   -5.+msinn, 2.*sinn,   2.);
-    planet[4] = vec4(-2.-mcoss, -3.+mcoss, -1.5*coss, 0.);
-    */
-
     for (int i = 0; i < N_PLANETS; ++i) {
         planet[i] = uparams.planet[i];
     }
@@ -271,41 +252,30 @@ void main() {
     bool hit;
     float id;
 
-    // --- Звична UV (залишив як у вас) ---
     vec2 fragCoord = vec2(gl_FragCoord.xy);
     vec2 uv = (fragCoord - 0.5 * vec2(iResolution)) / float(iResolution.y);
 
-    // --- ПАРТІЯ: побудова променя через invViewProj ---
-    // Побудуємо два clip-space положення: на near (z=-1) і far (z=+1)
     vec4 clipNear = vec4(uv.xy, -1.0, 1.0);
     vec4 clipFar  = vec4(uv.xy,  1.0, 1.0);
 
-    // Перетворюємо з clip -> world за допомогою invViewProj
-    vec4 worldNear4 = invViewProj * clipNear;
-    vec4 worldFar4  = invViewProj * clipFar;
+    vec4 worldNear4 = uparams.invViewProj * clipNear;
+    vec4 worldFar4  = uparams.invViewProj * clipFar;
 
     vec3 worldNear = worldNear4.xyz / worldNear4.w;
     vec3 worldFar  = worldFar4.xyz  / worldFar4.w;
 
-    // Промінь: від worldNear у бік worldFar
-    //vec3 rayOrigin = worldNear;
     vec3 rayDir = normalize(worldFar - worldNear);
+    vec3 rayOrigin = cameraPos.xyz;
 
-    // Якщо у вас є окремо cameraPos (наприклад для точкових розрахунків освітлення),
-    // ви можете використовувати cameraPos замість worldNear як origin:
-    vec3 rayOrigin = cameraPos;
-
-    // Тепер трасуємо так само як було (передаємо матрицю обертання/м, тут поки identity)
     vec4 planet[N_PLANETS];
     vec3 p = trace(uv, rayOrigin, rayDir, hit, id, mat3(1.0), planet);
 
-    // Фон
     vec3 color = Cubemap(uv, rayDir).rgb;
 
     if (hit)
     {
         vec3 objColor = vec3(0.0);
-        vec3 light = lightPos;
+        vec3 light = lightPos.xyz;
 
         vec3 normal     = generateNormal(uv, p, 0.001, mat3(1.0), planet);
         vec3 lightDir   = normalize(light - p);

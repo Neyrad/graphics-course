@@ -33,8 +33,6 @@ private:
 private:
   OsWindowingManager windowing;
   std::unique_ptr<OsWindow> mainWindow;
-
-  //bool useVsync;
   
   float camMoveSpeed = 1;
   float camRotateSpeed = 0.1f;
