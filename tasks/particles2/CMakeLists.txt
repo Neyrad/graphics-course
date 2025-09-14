@@ -15,4 +15,7 @@ target_add_shaders(particles2
   shaders/texture.frag
   shaders/particles.vert
   shaders/particles.frag
+  shaders/simulate.comp
+  shaders/spawn.comp
+  shaders/writeIndirect.comp
 )

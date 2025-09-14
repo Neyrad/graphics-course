@@ -1,0 +1,44 @@
+#version 450
+layout(local_size_x = 64) in;
+
+struct Particle {
+    vec3 pos;
+    vec3 vel;
+    float lifetime;
+    float age;
+};
+
+layout(std430, binding = 1) writeonly buffer OutParticles {
+    Particle outParticles[];
+};
+
+layout(std430, binding = 2) buffer Counter {
+    uint aliveCount;
+};
+
+layout(push_constant) uniform SpawnParams {
+    uint spawnCount;
+    vec3 emitterPos;
+    float life;
+} spawn;
+
+uint rand(uint seed) {
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return seed;
+}
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= spawn.spawnCount) return;
+
+    Particle p;
+    p.pos = spawn.emitterPos;
+    p.vel = vec3(float(rand(gid+1)%100)/50.0 - 1.0, 1.0, 0.0); // примітивна рандомна швидкість
+    p.lifetime = spawn.life;
+    p.age = 0;
+
+    uint idx = atomicAdd(aliveCount, 1);
+    outParticles[idx] = p;
+}

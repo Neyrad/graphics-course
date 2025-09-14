@@ -4,6 +4,7 @@
 #include <etna/Sampler.hpp>
 #include <etna/Buffer.hpp>
 #include <etna/GraphicsPipeline.hpp>
+#include <etna/ComputePipeline.hpp>
 #include <glm/glm.hpp>
 
 #include "scene/SceneManager.hpp"
@@ -111,6 +112,20 @@ private:
   etna::GraphicsPipeline texturePipeline{};
   etna::GraphicsPipeline graphicsPipeline{};
   etna::GraphicsPipeline emittersPipeline{};
+
+  etna::ComputePipeline simulatePipeline{};
+  etna::ComputePipeline spawnPipeline{};
+  etna::ComputePipeline writeIndirectPipeline{};
+
+  // Буфер із частинками (SSBO)
+  etna::Buffer particleBuffer;
+
+  // Буфер для drawIndirect команд
+  etna::Buffer indirectBuffer;
+
+  etna::Buffer counterBuffer;
+
+
 
   glm::uvec2 resolution;
 };

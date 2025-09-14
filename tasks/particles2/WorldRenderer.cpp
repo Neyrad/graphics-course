@@ -4,6 +4,7 @@
 #include <etna/PipelineManager.hpp>
 #include <etna/RenderTargetStates.hpp>
 #include <etna/Profiling.hpp>
+#include <etna/Buffer.hpp>
 #include <glm/ext.hpp>
 #include <imgui.h>
 
@@ -12,10 +13,35 @@
 
 #include "stb_image.h"
 
+const uint32_t maxParticles = 100000;
+
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
   lightPos = glm::vec3(0.0f, -6.0f, -5.0f);
+
+  particleBuffer = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
+      .size = sizeof(Particle) * maxParticles,
+      .bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer,
+      .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY,
+      .name = "particleBuffer",
+  });
+
+  indirectBuffer = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
+      .size = sizeof(VkDrawIndirectCommand) * maxParticles,
+      .bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndirectBuffer,
+      .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY,
+      .name = "indirectBuffer",
+  });
+
+  counterBuffer = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
+      .size = sizeof(uint32_t), // один int для aliveCount
+      .bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer,
+      .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY,
+      .name = "counterBuffer",
+  });
+
+
 }
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
@@ -95,6 +121,21 @@ void WorldRenderer::loadShaders()
   {PARTICLES2_SHADERS_ROOT "particles.frag.spv",
    PARTICLES2_SHADERS_ROOT "particles.vert.spv"});
 
+  etna::create_program(
+    "simulate",
+    { PARTICLES2_SHADERS_ROOT "simulate.comp.spv" }
+  );
+
+  etna::create_program(
+    "spawn",
+    { PARTICLES2_SHADERS_ROOT "spawn.comp.spv" }
+  );
+
+  etna::create_program(
+    "writeIndirect",
+    { PARTICLES2_SHADERS_ROOT "writeIndirect.comp.spv" }
+  );
+
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
@@ -138,6 +179,24 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
         .depthAttachmentFormat = vk::Format::eD32Sfloat,
       }
   });
+
+  simulatePipeline = etna::get_context().getPipelineManager().createComputePipeline(
+    "simulate",
+    etna::ComputePipeline::CreateInfo{}
+);
+
+spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
+    "spawn",
+    etna::ComputePipeline::CreateInfo{}
+);
+
+writeIndirectPipeline = etna::get_context().getPipelineManager().createComputePipeline(
+    "writeIndirect",
+    etna::ComputePipeline::CreateInfo{}
+);
+
+
+
 }
 
 #include <glm/gtx/string_cast.hpp>
@@ -208,6 +267,123 @@ void WorldRenderer::update(FramePacket& FP)
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                 vk::Image target_image, vk::ImageView target_image_view)
 {
+
+  
+  ///
+  ///
+  /// COMPUTE PART
+  ///
+  ///
+
+
+  // SPAWN
+  cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, spawnPipeline.getVkPipeline());
+  auto spawnInfo = etna::get_shader_program("spawn");
+  auto spawnSet = etna::create_descriptor_set(
+      spawnInfo.getDescriptorLayoutId(0),
+      cmd_buf,
+      {
+          etna::Binding{1, particleBuffer.genBinding()},   // твій SSBO з частинками
+          etna::Binding{2, counterBuffer.genBinding()}         // якісь uniform-константи
+      }
+  );
+  vk::DescriptorSet spawnVkSet = spawnSet.getVkSet();
+  cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
+                            spawnPipeline.getVkPipelineLayout(),
+                            0, 1, &spawnVkSet, 0, nullptr);
+
+  struct SpawnPush {
+      uint32_t spawnCount;
+      glm::vec3 emitterPos;
+      float life;
+  } pushParams_spawn { 1000, glm::vec3(0, 0, 0), 10.0f };
+
+  cmd_buf.pushConstants(
+      spawnPipeline.getVkPipelineLayout(),
+      vk::ShaderStageFlagBits::eCompute,
+      0,
+      sizeof(pushParams_spawn),
+      &pushParams_spawn
+  );
+  
+  uint32_t workgroupSize_spawn = 64;
+  uint32_t numGroups_spawn = (maxParticles + workgroupSize_spawn - 1) / workgroupSize_spawn;
+  cmd_buf.dispatch(numGroups_spawn, 1, 1);
+
+
+  // SIMULATE
+  cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, simulatePipeline.getVkPipeline());
+  auto simInfo = etna::get_shader_program("simulate");
+  auto simSet = etna::create_descriptor_set(
+      simInfo.getDescriptorLayoutId(0),
+      cmd_buf,
+      {
+          etna::Binding{0, particleBuffer.genBinding()},
+          etna::Binding{1, particleBuffer.genBinding()},
+          etna::Binding{2, counterBuffer.genBinding()}
+      }
+  );
+  vk::DescriptorSet simVkSet = simSet.getVkSet();
+  cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
+                            simulatePipeline.getVkPipelineLayout(),
+                            0, 1, &simVkSet, 0, nullptr);
+
+  struct SimPush {
+      float dt;
+  } pushParams_sim { 0.017f };
+
+  cmd_buf.pushConstants(
+      simulatePipeline.getVkPipelineLayout(),
+      vk::ShaderStageFlagBits::eCompute,
+      0,
+      sizeof(pushParams_sim),
+      &pushParams_sim
+  );
+
+  uint32_t workgroupSize_sim = 256;
+  uint32_t numGroups_sim = (maxParticles + workgroupSize_sim - 1) / workgroupSize_sim;
+  cmd_buf.dispatch(numGroups_sim, 1, 1);
+
+  // WRITE INDIRECT
+  cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, writeIndirectPipeline.getVkPipeline());
+  auto writeIndirectInfo = etna::get_shader_program("writeIndirect");
+  auto writeIndirectSet = etna::create_descriptor_set(
+      writeIndirectInfo.getDescriptorLayoutId(0),
+      cmd_buf,
+      {
+          etna::Binding{2, counterBuffer.genBinding()},
+          etna::Binding{3, indirectBuffer.genBinding()}
+      }
+  );
+  vk::DescriptorSet writeIndirectVkSet = writeIndirectSet.getVkSet();
+  cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
+                            writeIndirectPipeline.getVkPipelineLayout(),
+                            0, 1, &writeIndirectVkSet, 0, nullptr);
+
+  struct IndirectPush {
+      uint32_t vertsPerParticle;
+  } pushParams_indir { 6 };
+
+  cmd_buf.pushConstants(
+      writeIndirectPipeline.getVkPipelineLayout(),
+      vk::ShaderStageFlagBits::eCompute,
+      0,
+      sizeof(pushParams_indir),
+      &pushParams_indir
+  );
+                            
+  uint32_t workgroupSize_indir = 1;
+  uint32_t numGroups_indir = (maxParticles + workgroupSize_indir - 1) / workgroupSize_indir;
+  cmd_buf.dispatch(numGroups_indir, 1, 1);
+
+
+  ///
+  ///
+  /// GRAPHICS PART
+  ///
+  ///
+
+
   // --- PASS 1: render to offscreen 'image' ---
   etna::set_state(cmd_buf, image.get(),
                   vk::PipelineStageFlagBits2::eColorAttachmentOutput,
