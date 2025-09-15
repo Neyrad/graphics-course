@@ -238,7 +238,7 @@ void WorldRenderer::update(FramePacket& FP)
 
     std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
   }
-
+/*
   for (auto& emitter : emitters) {
     spawnParticles(emitter, deltaTime);
 
@@ -261,7 +261,7 @@ void WorldRenderer::update(FramePacket& FP)
                   return da > db;
               });
   }
-
+*/
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -296,7 +296,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       uint32_t spawnCount;
       glm::vec3 emitterPos;
       float life;
-  } pushParams_spawn { 1000, glm::vec3(0, 0, 0), 10.0f };
+  } pushParams_spawn { 6000, glm::vec3(0, 0, 0), 10.0f };
 
   cmd_buf.pushConstants(
       spawnPipeline.getVkPipelineLayout(),
@@ -463,7 +463,9 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         emittersInfo.getDescriptorLayoutId(0),
         cmd_buf,
         {
-            etna::Binding{ 0, constants.genBinding() }
+            etna::Binding{ 0, constants.genBinding() },
+
+            etna::Binding{ 1, particleBuffer.genBinding() }
         }
     );
 
@@ -481,7 +483,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     uniformParams.viewProj = worldViewProj;
     uniformParams.view = view;
     uniformParams.camPos = glm::vec4(cameraPos, 1);
-
+/*
     emitterRenderOrder.resize(emitters.size());
     std::iota(emitterRenderOrder.begin(), emitterRenderOrder.end(), 0);
     std::sort(emitterRenderOrder.begin(), emitterRenderOrder.end(),
@@ -501,6 +503,10 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         cmd_buf.draw(6, 1, 0, 0);
       }
     }
+*/
+    // малюємо всіх частинок GPU, як підказав writeIndirect
+    cmd_buf.drawIndirect(indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
+
   }
 }
 
@@ -583,7 +589,7 @@ void WorldRenderer::drawGui()
   ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Press 'B' to recompile and reload shaders");
   ImGui::End();
 }
-
+/*
 void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
     int count = static_cast<int>(emitter.spawnRate * deltaTime);
 
@@ -597,3 +603,4 @@ void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
         emitter.particleList.push_back(p);
     }
 }
+*/

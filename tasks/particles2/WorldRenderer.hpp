@@ -95,7 +95,7 @@ private:
   std::vector<Emitter> emitters;
   std::vector<size_t> emitterRenderOrder;
 
-  void spawnParticles(Emitter& emitter, float deltaTime);
+  //void spawnParticles(Emitter& emitter, float deltaTime);
 
   std::vector<Planet> planets = {
     {0.3f, 10.f},
