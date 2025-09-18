@@ -37,9 +37,10 @@ WorldRenderer::WorldRenderer()
   indirectBuffer = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
       .size = sizeof(VkDrawIndirectCommand) * maxParticles,
       .bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndirectBuffer,
-      .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY,
+      .memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
       .name = "indirectBuffer",
   });
+  indirectBuffer.map();
 
   counterBufferA = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
       .size = sizeof(uint32_t), // один int для aliveCount
@@ -292,6 +293,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
   // RESET OUTBUFFER ALIVE COUNTER
   cmd_buf.fillBuffer((useAasInput ? counterBufferB : counterBufferA).get(), 0, sizeof(uint32_t), 0);
+  
   vk::BufferMemoryBarrier2 resetBarrier{
       .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
       .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
@@ -399,6 +401,18 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   std::cout << std::endl;
 
 
+  vk::BufferMemoryBarrier2 counterBarrier{
+      .srcStageMask = vk::PipelineStageFlagBits2::eComputeShader,
+      .srcAccessMask = vk::AccessFlagBits2::eShaderWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eComputeShader,
+      .dstAccessMask = vk::AccessFlagBits2::eShaderRead,
+      .buffer = (useAasInput ? counterBufferB : counterBufferA).get(),
+      .offset = 0,
+      .size = sizeof(uint32_t)
+  };
+  cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(counterBarrier));
+
+
   // WRITE INDIRECT
   cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, writeIndirectPipeline.getVkPipeline());
   auto writeIndirectInfo = etna::get_shader_program("writeIndirect");
@@ -440,8 +454,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     .size = sizeof(VkDrawIndirectCommand)
 };
 cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(indirectBarrier));
-
-  useAasInput = !useAasInput;
 
   ///
   ///
@@ -531,7 +543,7 @@ cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(indirectBa
         {
             etna::Binding{ 0, constants.genBinding() },
 
-            etna::Binding{ 1, (useAasInput ? particleBufferA : particleBufferB).genBinding() }
+            etna::Binding{ 1, (useAasInput ? particleBufferB : particleBufferA).genBinding() }
         }
     );
 
@@ -571,7 +583,21 @@ cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(indirectBa
     }
 */
 
+    struct DrawIndirectCmd {
+        uint32_t vertexCount;
+        uint32_t instanceCount;
+        uint32_t firstVertex;
+        uint32_t firstInstance;
+    };
+
+    auto indirectCommands = *reinterpret_cast<DrawIndirectCmd*>(indirectBuffer.data());
+    std::cout << "vertexCount = " << indirectCommands.vertexCount << std::endl;
+    std::cout << "instanceCount = " << indirectCommands.instanceCount << std::endl;
+    std::cout << "firstVertex = " << indirectCommands.firstVertex << std::endl;
+    std::cout << "firstInstance = " << indirectCommands.firstInstance << std::endl;
+
     cmd_buf.drawIndirect(indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
+    useAasInput = !useAasInput;
 
   }
 }
