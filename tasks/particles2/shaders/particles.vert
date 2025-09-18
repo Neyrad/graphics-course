@@ -43,7 +43,7 @@ const vec2 quadVerts[6] = vec2[](
 );
 
   const vec4 color = vec4(0, 0, 1, 1);
-  const float size = 0.1;
+  const float size = 0.01;
   const float alpha = 1.0;
 
 void main() {

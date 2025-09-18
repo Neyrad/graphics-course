@@ -10,10 +10,12 @@
 
 #include <iostream>
 #include <numeric>
+#include <cstdlib>  // rand, srand
+#include <ctime>    // time
 
 #include "stb_image.h"
 
-const uint32_t maxParticles = 1000;
+const uint32_t maxParticles = 10000;
 
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
@@ -57,6 +59,8 @@ WorldRenderer::WorldRenderer()
       .name = "counterBufferB",
   });
   counterBufferB.map();
+
+  std::srand(std::time(nullptr));
 
 }
 
@@ -334,7 +338,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       glm::vec4 emitterPos;
       uint32_t spawnCount;
       float life;
-  } pushParams_spawn { glm::vec4(0, 0, 0, 0), 10, 10.f };
+      uint32_t seed;
+  } pushParams_spawn { glm::vec4(0, 0, 0, 0), 10, 1.0f, (unsigned)std::rand() };
 
   cmd_buf.pushConstants(
       spawnPipeline.getVkPipelineLayout(),
