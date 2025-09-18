@@ -1,11 +1,11 @@
 #version 450
 layout(local_size_x = 1) in;
 
-layout(std430, binding = 2) buffer Counter {
-    uint aliveCount;
+layout(std430, binding = 3) buffer OutCounter {
+    uint outAliveCount;
 };
 
-layout(std430, binding = 3) buffer IndirectArgs {
+layout(std430, binding = 4) buffer IndirectArgs {
     uint vertexCount;
     uint instanceCount;
     uint firstVertex;
@@ -17,8 +17,8 @@ layout(push_constant) uniform DrawParams {
 } draw;
 
 void main() {
-    vertexCount = aliveCount * draw.vertsPerParticle;
-    instanceCount = 1;
+    vertexCount = draw.vertsPerParticle;
+    instanceCount = outAliveCount;
     firstVertex = 0;
     firstInstance = 0;
 }

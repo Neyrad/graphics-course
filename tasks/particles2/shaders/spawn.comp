@@ -2,23 +2,25 @@
 layout(local_size_x = 64) in;
 
 struct Particle {
-    vec3 pos;
-    vec3 vel;
+    vec4 pos;
+    vec4 vel;
     float lifetime;
     float age;
+    float pad0;
+    float pad1;
 };
 
 layout(std430, binding = 1) writeonly buffer OutParticles {
     Particle outParticles[];
 };
 
-layout(std430, binding = 2) buffer Counter {
-    uint aliveCount;
+layout(std430, binding = 3) buffer OutCounter {
+    uint outAliveCount;
 };
 
 layout(push_constant) uniform SpawnParams {
+    vec4 emitterPos;
     uint spawnCount;
-    vec3 emitterPos;
     float life;
 } spawn;
 
@@ -29,6 +31,8 @@ uint rand(uint seed) {
     return seed;
 }
 
+const uint maxParticles = 1000;
+
 void main() {
     uint gid = gl_GlobalInvocationID.x;
     if (gid >= spawn.spawnCount) return;
@@ -37,13 +41,14 @@ void main() {
     uint seed = gid * 747796405u + 2891336453u;
     float rand01 = float(rand(seed) & 0xFFFFu) / 65535.0;
 
-    p.pos = spawn.emitterPos + vec3(
+    p.pos = spawn.emitterPos + vec4(
         (rand01 - 0.5) * 0.2,   // трохи розкидати по X
+        (rand01 - 0.5) * 0.2,    // трохи по Y
         0.0,
-        (rand01 - 0.5) * 0.2    // трохи по Z
-    );
+        0.0
+    ) * 25.0;
 
-    p.vel = normalize(vec3(
+    p.vel.xyz = normalize(vec3(
         (float(rand(seed+1) & 0xFFFFu) / 65535.0 - 0.5),
         1.0,
         (float(rand(seed+2) & 0xFFFFu) / 65535.0 - 0.5)
@@ -51,6 +56,12 @@ void main() {
     p.lifetime = spawn.life;
     p.age = 0;
 
-    uint idx = atomicAdd(aliveCount, 1);
+    uint idx;
+    do {
+        idx = outAliveCount;
+        if (idx >= maxParticles) return;
+    } while (atomicCompSwap(outAliveCount, idx, idx + 1) != idx);
+
+    // Тільки тепер можна писати
     outParticles[idx] = p;
 }

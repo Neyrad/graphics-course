@@ -76,10 +76,11 @@ private:
   };
 
   struct Particle {
-    glm::vec3 pos;
-    glm::vec3 vel;
+    glm::vec4 pos;
+    glm::vec4 vel;
     float lifetime;
     float age;
+    float pad[2]; // вирівнювання до 16 байт
   };
 
   struct Emitter {
@@ -125,7 +126,8 @@ private:
   // Буфер для drawIndirect команд
   etna::Buffer indirectBuffer;
 
-  etna::Buffer counterBuffer;
+  etna::Buffer counterBufferA;
+  etna::Buffer counterBufferB;
 
 
 

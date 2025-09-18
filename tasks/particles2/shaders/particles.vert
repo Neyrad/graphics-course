@@ -9,10 +9,12 @@ layout(binding = 0, set = 0) uniform AppData
 };
 
 struct Particle {
-    vec3 pos;
-    vec3 vel;
+    vec4 pos;
+    vec4 vel;
     float lifetime;
     float age;
+    float pad0;
+    float pad1;
 };
 
 layout(std430, binding = 1) readonly buffer Particles {
@@ -51,9 +53,7 @@ void main() {
     vec3 camUp    = vec3(uparams.view[0][1], uparams.view[1][1], uparams.view[2][1]);
 
     Particle p = particles[gl_InstanceIndex];
-    vec3 worldPos = p.pos + (camRight * corner.x + camUp * corner.y) * size;
-
-    //vec3 worldPos = pc.pos + (camRight * corner.x + camUp * corner.y) * pc.size;
+    vec3 worldPos = p.pos.xyz + (camRight * corner.x + camUp * corner.y) * size;
 
     gl_Position = uparams.viewProj * vec4(worldPos, 1.0);
 
