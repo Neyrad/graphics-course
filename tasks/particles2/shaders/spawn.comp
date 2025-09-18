@@ -34,8 +34,20 @@ void main() {
     if (gid >= spawn.spawnCount) return;
 
     Particle p;
-    p.pos = spawn.emitterPos;
-    p.vel = vec3(float(rand(gid+1)%100)/50.0 - 1.0, 1.0, 0.0); // примітивна рандомна швидкість
+    uint seed = gid * 747796405u + 2891336453u;
+    float rand01 = float(rand(seed) & 0xFFFFu) / 65535.0;
+
+    p.pos = spawn.emitterPos + vec3(
+        (rand01 - 0.5) * 0.2,   // трохи розкидати по X
+        0.0,
+        (rand01 - 0.5) * 0.2    // трохи по Z
+    );
+
+    p.vel = normalize(vec3(
+        (float(rand(seed+1) & 0xFFFFu) / 65535.0 - 0.5),
+        1.0,
+        (float(rand(seed+2) & 0xFFFFu) / 65535.0 - 0.5)
+    )) * 2.0;   // швидкість від 2.0 вгору в рандомному напрямку
     p.lifetime = spawn.life;
     p.age = 0;
 

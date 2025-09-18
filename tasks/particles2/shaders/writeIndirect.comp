@@ -17,8 +17,7 @@ layout(push_constant) uniform DrawParams {
 } draw;
 
 void main() {
-    //vertexCount = aliveCount * draw.vertsPerParticle;
-    vertexCount = 1000 * draw.vertsPerParticle;
+    vertexCount = aliveCount * draw.vertsPerParticle;
     instanceCount = 1;
     firstVertex = 0;
     firstInstance = 0;

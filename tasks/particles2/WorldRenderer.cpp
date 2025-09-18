@@ -20,11 +20,18 @@ WorldRenderer::WorldRenderer()
 {
   lightPos = glm::vec3(0.0f, -6.0f, -5.0f);
 
-  particleBuffer = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
+  particleBufferA = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
       .size = sizeof(Particle) * maxParticles,
       .bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer,
-      .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY,
-      .name = "particleBuffer",
+      .memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
+      .name = "particleBufferA",
+  });
+
+  particleBufferB = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
+      .size = sizeof(Particle) * maxParticles,
+      .bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer,
+      .memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
+      .name = "particleBufferB",
   });
 
   indirectBuffer = etna::get_context().createBuffer(etna::Buffer::CreateInfo{
@@ -185,15 +192,15 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
     etna::ComputePipeline::CreateInfo{}
 );
 
-spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
-    "spawn",
-    etna::ComputePipeline::CreateInfo{}
-);
+  spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
+      "spawn",
+      etna::ComputePipeline::CreateInfo{}
+  );
 
-writeIndirectPipeline = etna::get_context().getPipelineManager().createComputePipeline(
-    "writeIndirect",
-    etna::ComputePipeline::CreateInfo{}
-);
+  writeIndirectPipeline = etna::get_context().getPipelineManager().createComputePipeline(
+      "writeIndirect",
+      etna::ComputePipeline::CreateInfo{}
+  );
 
 
 
@@ -275,6 +282,19 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   ///
   ///
 
+  cmd_buf.fillBuffer(counterBuffer.get(), 0, sizeof(uint32_t), 0);
+  vk::BufferMemoryBarrier2 resetBarrier{
+      .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
+      .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eComputeShader,
+      .dstAccessMask = vk::AccessFlagBits2::eShaderRead | vk::AccessFlagBits2::eShaderWrite,
+      .buffer = counterBuffer.get(),
+      .offset = 0,
+      .size = sizeof(uint32_t)
+  };
+
+  cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(resetBarrier));
+
 
   // SPAWN
   cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, spawnPipeline.getVkPipeline());
@@ -283,7 +303,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       spawnInfo.getDescriptorLayoutId(0),
       cmd_buf,
       {
-          etna::Binding{1, particleBuffer.genBinding()},   // твій SSBO з частинками
+          etna::Binding{1, (useAasInput ? particleBufferA : particleBufferB).genBinding()},   // твій SSBO з частинками
           etna::Binding{2, counterBuffer.genBinding()}         // якісь uniform-константи
       }
   );
@@ -307,9 +327,12 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   );
   
   uint32_t workgroupSize_spawn = 64;
-  uint32_t numGroups_spawn = (maxParticles + workgroupSize_spawn - 1) / workgroupSize_spawn;
+  uint32_t numGroups_spawn = (6000 + workgroupSize_spawn - 1) / workgroupSize_spawn;
   cmd_buf.dispatch(numGroups_spawn, 1, 1);
 
+  // RESET COUNTER AGAIN
+  cmd_buf.fillBuffer(counterBuffer.get(), 0, sizeof(uint32_t), 0);
+  cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(resetBarrier));
 
   // SIMULATE
   cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, simulatePipeline.getVkPipeline());
@@ -318,8 +341,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       simInfo.getDescriptorLayoutId(0),
       cmd_buf,
       {
-          etna::Binding{0, particleBuffer.genBinding()},
-          etna::Binding{1, particleBuffer.genBinding()},
+          etna::Binding{0, (useAasInput ? particleBufferA : particleBufferB).genBinding()},
+          etna::Binding{1, (useAasInput ? particleBufferB : particleBufferA).genBinding()},
           etna::Binding{2, counterBuffer.genBinding()}
       }
   );
@@ -341,8 +364,9 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   );
 
   uint32_t workgroupSize_sim = 256;
-  uint32_t numGroups_sim = (maxParticles + workgroupSize_sim - 1) / workgroupSize_sim;
+  uint32_t numGroups_sim = (6000 + workgroupSize_sim - 1) / workgroupSize_sim;
   cmd_buf.dispatch(numGroups_sim, 1, 1);
+  useAasInput = !useAasInput;
 
   // WRITE INDIRECT
   cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, writeIndirectPipeline.getVkPipeline());
@@ -372,9 +396,9 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       &pushParams_indir
   );
                             
-  uint32_t workgroupSize_indir = 1;
-  uint32_t numGroups_indir = (maxParticles + workgroupSize_indir - 1) / workgroupSize_indir;
-  cmd_buf.dispatch(numGroups_indir, 1, 1);
+  //uint32_t workgroupSize_indir = 1;
+  //uint32_t numGroups_indir = (maxParticles + workgroupSize_indir - 1) / workgroupSize_indir;
+  cmd_buf.dispatch(1, 1, 1);
 
 
   ///
@@ -465,7 +489,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         {
             etna::Binding{ 0, constants.genBinding() },
 
-            etna::Binding{ 1, particleBuffer.genBinding() }
+            etna::Binding{ 1, (useAasInput ? particleBufferA : particleBufferB).genBinding() }
         }
     );
 
@@ -505,6 +529,10 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     }
 */
     // малюємо всіх частинок GPU, як підказав writeIndirect
+    vk::Buffer vb = (useAasInput ? particleBufferA : particleBufferB).get();
+    vk::DeviceSize offset = 0;
+
+    cmd_buf.bindVertexBuffers(0, 1, &vb, &offset);
     cmd_buf.drawIndirect(indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
 
   }

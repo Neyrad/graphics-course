@@ -118,7 +118,9 @@ private:
   etna::ComputePipeline writeIndirectPipeline{};
 
   // Буфер із частинками (SSBO)
-  etna::Buffer particleBuffer;
+  etna::Buffer particleBufferA;
+  etna::Buffer particleBufferB;
+  bool useAasInput = true;
 
   // Буфер для drawIndirect команд
   etna::Buffer indirectBuffer;
