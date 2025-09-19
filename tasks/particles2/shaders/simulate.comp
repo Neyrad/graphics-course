@@ -4,9 +4,10 @@ layout(local_size_x = 256) in;
 struct Particle {
     vec4 pos;
     vec4 vel;
+    vec4 color;
     float lifetime;
     float age;
-    float pad0;
+    float size;
     float pad1;
 };
 

@@ -78,9 +78,11 @@ private:
   struct Particle {
     glm::vec4 pos;
     glm::vec4 vel;
+    glm::vec4 color;
     float lifetime;
     float age;
-    float pad[2]; // вирівнювання до 16 байт
+    float size;
+    float pad1; // вирівнювання до 16 байт
   };
 
   struct Emitter {

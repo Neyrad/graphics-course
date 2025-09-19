@@ -4,9 +4,10 @@ layout(local_size_x = 64) in;
 struct Particle {
     vec4 pos;
     vec4 vel;
+    vec4 color;
     float lifetime;
     float age;
-    float pad0;
+    float size;
     float pad1;
 };
 
@@ -20,9 +21,12 @@ layout(std430, binding = 3) buffer OutCounter {
 
 layout(push_constant) uniform SpawnParams {
     vec4 emitterPos;
+    vec4 color;
     uint spawnCount;
     float life;
     uint seed;
+    float size;
+    float initialSpeed;
 } spawn;
 
 uint wang_hash(uint s) {
@@ -59,9 +63,11 @@ void main() {
 
     Particle p;
     p.pos = spawn.emitterPos;
-    p.vel.xyz = normalize(dir); // напрямок рівномірно на сфері
+    p.vel.xyz = normalize(dir) * spawn.initialSpeed; // напрямок рівномірно на сфері
     p.lifetime = spawn.life;
     p.age = 0.0;
+    p.size = spawn.size;
+    p.color = spawn.color;
 
     uint idx;
     do {

@@ -306,16 +306,22 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   for (auto& emitter : emitters) {
     struct SpawnPush {
         glm::vec4 emitterPos;
+        glm::vec4 color;
         uint32_t spawnCount;
         float life;
         uint32_t seed;
+        float size;
+        float initialSpeed;
     };
 
     SpawnPush pushParams_spawn {
         glm::vec4(emitter.position, 1.0f),
+        glm::vec4(emitter.particleColor, 1.0f),
         static_cast<uint32_t>(emitter.spawnRate * 0.017f), // скільки нових частинок спавнити
         emitter.particleLifetime,
-        static_cast<uint32_t>(std::rand())
+        static_cast<uint32_t>(std::rand()),
+        emitter.particleSize,
+        emitter.initialSpeed
     };
 
     cmd_buf.pushConstants(
