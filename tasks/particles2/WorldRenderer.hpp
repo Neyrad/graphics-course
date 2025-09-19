@@ -50,9 +50,8 @@ private:
   glm::vec3 lightPos;
 
   float time;
+  float deltaTime = 0.0f;
   glm::vec2 mouse;
-  float yaw;
-  float pitch;
 
   float planetSpeed = 1.f;
   float scale = 20.f;
@@ -92,12 +91,19 @@ private:
     float initialSpeed;
     float particleSize;
     glm::vec3 particleColor;
+
+    bool useAasInput;
+    etna::Buffer particleBufferA;
+    etna::Buffer particleBufferB;
+
+    etna::Buffer counterBufferA;
+    etna::Buffer counterBufferB;
+
+    etna::Buffer indirectBuffer;
   };
 
   std::vector<Emitter> emitters;
   std::vector<size_t> emitterRenderOrder;
-
-  //void spawnParticles(Emitter& emitter, float deltaTime);
 
   std::vector<Planet> planets = {
     {0.3f, 10.f},
@@ -118,17 +124,6 @@ private:
   etna::ComputePipeline simulatePipeline{};
   etna::ComputePipeline spawnPipeline{};
   etna::ComputePipeline writeIndirectPipeline{};
-
-  // Буфер із частинками (SSBO)
-  etna::Buffer particleBufferA;
-  etna::Buffer particleBufferB;
-  bool useAasInput = true;
-
-  // Буфер для drawIndirect команд
-  etna::Buffer indirectBuffer;
-
-  etna::Buffer counterBufferA;
-  etna::Buffer counterBufferB;
 
   glm::uvec2 resolution;
 };
