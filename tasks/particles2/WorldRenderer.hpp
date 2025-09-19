@@ -100,6 +100,10 @@ private:
     etna::Buffer counterBufferB;
 
     etna::Buffer indirectBuffer;
+
+    // sort
+    etna::Buffer indicesBuffer;
+    etna::Buffer depthBuffer;
   };
 
   std::vector<Emitter> emitters;
@@ -124,6 +128,7 @@ private:
   etna::ComputePipeline simulatePipeline{};
   etna::ComputePipeline spawnPipeline{};
   etna::ComputePipeline writeIndirectPipeline{};
+  etna::ComputePipeline sortPipeline{};
 
   glm::uvec2 resolution;
 };

@@ -118,6 +118,10 @@ void WorldRenderer::loadShaders()
     { PARTICLES2_SHADERS_ROOT "writeIndirect.comp.spv" }
   );
 
+  etna::create_program(
+    "sort",
+    { PARTICLES2_SHADERS_ROOT "sort.comp.spv" }
+  );
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
@@ -176,6 +180,11 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       "writeIndirect",
       etna::ComputePipeline::CreateInfo{}
   );
+
+  sortPipeline = etna::get_context().getPipelineManager().createComputePipeline(
+      "sort",
+      etna::ComputePipeline::CreateInfo{}
+  );
 }
 
 void WorldRenderer::update(FramePacket& FP)
@@ -189,7 +198,6 @@ void WorldRenderer::update(FramePacket& FP)
   }
 
   this->deltaTime = FP.time - this->time;
-
   this->time = FP.time;
   this->mouse = FP.mouse;
 
@@ -221,15 +229,23 @@ void WorldRenderer::update(FramePacket& FP)
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                 vk::Image target_image, vk::ImageView target_image_view)
 {
-
-  
   ///
   ///
   /// COMPUTE PART
   ///
   ///
 
-  for (auto& emitter : emitters) {
+  emitterRenderOrder.resize(emitters.size());
+    std::iota(emitterRenderOrder.begin(), emitterRenderOrder.end(), 0);
+    std::sort(emitterRenderOrder.begin(), emitterRenderOrder.end(),
+        [&](size_t a, size_t b) {
+            float da = glm::distance(emitters[a].position, cameraPos);
+            float db = glm::distance(emitters[b].position, cameraPos);
+            return da > db;
+    });
+
+  for (size_t idx : emitterRenderOrder) {
+    auto& emitter = emitters[idx];
 
     // RESET OUTBUFFER ALIVE COUNTER
     cmd_buf.fillBuffer((emitter.useAasInput ? emitter.counterBufferB : emitter.counterBufferA).get(), 0, sizeof(uint32_t), 0);
@@ -346,15 +362,16 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     uint32_t numGroups_sim = (maxParticles + workgroupSize_sim - 1) / workgroupSize_sim;
     cmd_buf.dispatch(numGroups_sim, 1, 1);
   /*
-    std::cout << "After SIMULATE:" << std::endl;
-    std::cout << (useAasInput ? "Output buffer B" : "Output buffer A") << std::endl;
-    aliveA = *reinterpret_cast<uint32_t*>(counterBufferA.data());
-    std::cout << "Alive particles in A: " << aliveA << std::endl;
-    aliveB = *reinterpret_cast<uint32_t*>(counterBufferB.data());
-    std::cout << "Alive particles in B: " << aliveB << std::endl;
-    std::cout << std::endl;
+    {
+      std::cout << "After SIMULATE:" << std::endl;
+      std::cout << (emitter.useAasInput ? "Output buffer B" : "Output buffer A") << std::endl;
+      auto aliveA = *reinterpret_cast<uint32_t*>(emitter.counterBufferA.data());
+      std::cout << "Alive particles in A: " << aliveA << std::endl;
+      auto aliveB = *reinterpret_cast<uint32_t*>(emitter.counterBufferB.data());
+      std::cout << "Alive particles in B: " << aliveB << std::endl;
+      std::cout << std::endl;
+    }
   */
-
     vk::BufferMemoryBarrier2 counterBarrier{
         .srcStageMask = vk::PipelineStageFlagBits2::eComputeShader,
         .srcAccessMask = vk::AccessFlagBits2::eShaderWrite,
@@ -364,6 +381,58 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         .offset = 0,
         .size = sizeof(uint32_t)
     };
+    cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(counterBarrier));
+
+    // SORT
+    cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, sortPipeline.getVkPipeline());
+    auto sortInfo = etna::get_shader_program("sort");
+    auto sortSet = etna::create_descriptor_set(
+        sortInfo.getDescriptorLayoutId(0),
+        cmd_buf,
+        {
+            etna::Binding{1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding()},   // твій SSBO з частинками
+            etna::Binding{3, (emitter.useAasInput ? emitter.counterBufferB : emitter.counterBufferA).genBinding()},
+            etna::Binding{5, emitter.indicesBuffer.genBinding()},
+            etna::Binding{6, emitter.depthBuffer.genBinding()},
+        }
+    );
+    vk::DescriptorSet sortVkSet = sortSet.getVkSet();
+    cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
+                              sortPipeline.getVkPipelineLayout(),
+                              0, 1, &sortVkSet, 0, nullptr);
+
+    struct SortPush { glm::vec3 camPos; } push { cameraPos };
+    cmd_buf.pushConstants(sortPipeline.getVkPipelineLayout(),
+                          vk::ShaderStageFlagBits::eCompute,
+                          0, sizeof(push), &push);
+
+    uint32_t workgroupSize = 256;
+    uint32_t numGroups = (maxParticles + workgroupSize - 1) / workgroupSize;
+    cmd_buf.dispatch(numGroups, 1, 1);
+
+    // barrier для graphics
+    vk::BufferMemoryBarrier2 barrier{
+        .srcStageMask = vk::PipelineStageFlagBits2::eComputeShader,
+        .srcAccessMask = vk::AccessFlagBits2::eShaderWrite,
+        .dstStageMask = vk::PipelineStageFlagBits2::eVertexShader,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderRead,
+        .buffer = emitter.indicesBuffer.get(),
+        .offset = 0,
+        .size = sizeof(uint32_t) * maxParticles
+    };
+    cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(barrier));
+
+/*
+    vk::BufferMemoryBarrier2 counterBarrier{
+        .srcStageMask = vk::PipelineStageFlagBits2::eComputeShader,
+        .srcAccessMask = vk::AccessFlagBits2::eShaderWrite,
+        .dstStageMask = vk::PipelineStageFlagBits2::eComputeShader,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderRead,
+        .buffer = (emitter.useAasInput ? emitter.counterBufferB : emitter.counterBufferA).get(),
+        .offset = 0,
+        .size = sizeof(uint32_t)
+    };
+*/
     cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(counterBarrier));
 
 
@@ -485,7 +554,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.draw(3, 1, 0, 0);
   }
 
-  for (auto& emitter : emitters) {
+  for (size_t idx : emitterRenderOrder) {
+    auto& emitter = emitters[idx];
         // --- PARTICLES ---
       cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
 
@@ -495,7 +565,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
           cmd_buf,
           {
               etna::Binding{ 0, constants.genBinding() },
-              etna::Binding{ 1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding() }
+              etna::Binding{ 1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding() },
+              etna::Binding{ 5, emitter.indicesBuffer.genBinding() },
           }
       );
 
@@ -503,7 +574,15 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                 emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
 
+
 /*
+      auto indicesPtr = reinterpret_cast<uint32_t*>(emitter.indicesBuffer.data());
+      for (uint32_t i = 0; i < 10; ++i) {
+        std::cout << indicesPtr[i] << ", ";
+      }
+      std::cout << std::endl;
+      std::cout << std::endl;
+
       struct DrawIndirectCmd {
           uint32_t vertexCount;
           uint32_t instanceCount;
@@ -516,6 +595,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       std::cout << "instanceCount = " << indirectCommands.instanceCount << std::endl;
       std::cout << "firstVertex = " << indirectCommands.firstVertex << std::endl;
       std::cout << "firstInstance = " << indirectCommands.firstInstance << std::endl;
+
+      //exit(1);
 */
       cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
       emitter.useAasInput = !emitter.useAasInput;
@@ -564,6 +645,8 @@ void WorldRenderer::drawGui()
             .counterBufferA = {},
             .counterBufferB = {},
             .indirectBuffer = {},
+            .indicesBuffer = {},
+            .depthBuffer = {}
         };
 
         auto& ctx = etna::get_context();
@@ -586,6 +669,15 @@ void WorldRenderer::drawGui()
             vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndirectBuffer,
             VMA_MEMORY_USAGE_CPU_TO_GPU, "emitter_indirectBuffer"});
         emitter.indirectBuffer.map();
+
+        emitter.indicesBuffer = ctx.createBuffer({sizeof(uint32_t) * maxParticles,
+            vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer,
+            VMA_MEMORY_USAGE_CPU_TO_GPU, "emitter_indicesBuffer"});
+        emitter.indicesBuffer.map();
+
+        emitter.depthBuffer = ctx.createBuffer({sizeof(float) * maxParticles,
+            vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer,
+            VMA_MEMORY_USAGE_GPU_ONLY, "emitter_depthBuffer"});
 
         emitters.push_back(std::move(emitter));
     }

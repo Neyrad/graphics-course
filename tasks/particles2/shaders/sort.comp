@@ -1,0 +1,69 @@
+#version 450
+
+struct Particle {
+    vec4 pos;
+    vec4 vel;
+    vec4 color;
+    float lifetime;
+    float age;
+    float size;
+    float pad1;
+};
+
+layout(std430, binding = 1) buffer OutParticles {
+    Particle outParticles[];
+};
+
+layout(std430, binding = 3) buffer OutCounter {
+    uint outAliveCount;
+};
+
+layout(std430, binding = 5) buffer Indices {
+    uint indices[];
+};
+
+layout(std430, binding = 6) buffer Depths {
+    float depths[];
+};
+
+layout(push_constant) uniform Push {
+    vec3 camPos;
+} push;
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= outAliveCount) return;
+
+    // 1️⃣ ініціалізація
+    indices[idx] = idx;
+    vec3 pos = outParticles[idx].pos.xyz;
+    depths[idx] = distance(pos, push.camPos);
+
+    barrier(); // чекаємо, поки всі depth та indices записані
+
+    // 2️⃣ Bitonic sort
+    for (uint k = 2u; k <= outAliveCount; k <<= 1u) {
+        for (uint j = k >> 1u; j > 0u; j >>= 1u) {
+            uint ixj = idx ^ j;
+            if (ixj > idx) {
+                bool ascending = (idx & k) == 0u;
+
+                float di = depths[idx];
+                float dj = depths[ixj];
+                uint ii = indices[idx];
+                uint ji = indices[ixj];
+
+                bool swap = (ascending && di > dj) || (!ascending && di < dj);
+                if (swap) {
+                    depths[idx] = dj;
+                    depths[ixj] = di;
+                    indices[idx] = ji;
+                    indices[ixj] = ii;
+                }
+            }
+            barrier();
+        }
+    }
+}

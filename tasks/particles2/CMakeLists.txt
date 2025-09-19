@@ -18,4 +18,5 @@ target_add_shaders(particles2
   shaders/simulate.comp
   shaders/spawn.comp
   shaders/writeIndirect.comp
+  shaders/sort.comp
 )
