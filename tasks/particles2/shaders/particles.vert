@@ -44,7 +44,6 @@ const vec2 quadVerts[6] = vec2[](
 
   const vec4 color = vec4(0, 0, 1, 1);
   const float size = 0.01;
-  const float alpha = 1.0;
 
 void main() {
     vec2 corner = quadVerts[gl_VertexIndex];
@@ -58,6 +57,6 @@ void main() {
     gl_Position = uparams.viewProj * vec4(worldPos, 1.0);
 
     vUV = (corner + 1.0) * 0.5;
-    vAlpha = alpha;
+    vAlpha = 1.0f - (p.age / p.lifetime);
     vColor = color;
 }

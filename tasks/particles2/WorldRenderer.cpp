@@ -7,6 +7,7 @@
 #include <etna/Buffer.hpp>
 #include <glm/ext.hpp>
 #include <imgui.h>
+#include <glm/gtx/string_cast.hpp>
 
 #include <iostream>
 #include <numeric>
@@ -61,7 +62,6 @@ WorldRenderer::WorldRenderer()
   counterBufferB.map();
 
   std::srand(std::time(nullptr));
-
 }
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
@@ -137,9 +137,9 @@ void WorldRenderer::loadShaders()
     {PARTICLES2_SHADERS_ROOT "toy.frag.spv", PARTICLES2_SHADERS_ROOT "toy.vert.spv"});
 
   etna::create_program(
-  "emitters",
-  {PARTICLES2_SHADERS_ROOT "particles.frag.spv",
-   PARTICLES2_SHADERS_ROOT "particles.vert.spv"});
+    "emitters",
+    {PARTICLES2_SHADERS_ROOT "particles.frag.spv",
+    PARTICLES2_SHADERS_ROOT "particles.vert.spv"});
 
   etna::create_program(
     "simulate",
@@ -201,9 +201,9 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
   });
 
   simulatePipeline = etna::get_context().getPipelineManager().createComputePipeline(
-    "simulate",
-    etna::ComputePipeline::CreateInfo{}
-);
+      "simulate",
+      etna::ComputePipeline::CreateInfo{}
+  );
 
   spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "spawn",
@@ -214,14 +214,7 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       "writeIndirect",
       etna::ComputePipeline::CreateInfo{}
   );
-
-
-
 }
-
-#include <glm/gtx/string_cast.hpp>
-
-
 
 void WorldRenderer::update(FramePacket& FP)
 {
@@ -258,30 +251,6 @@ void WorldRenderer::update(FramePacket& FP)
 
     std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
   }
-/*
-  for (auto& emitter : emitters) {
-    spawnParticles(emitter, deltaTime);
-
-    for (auto& p : emitter.particleList) {
-        p.age += deltaTime;
-        if (p.age < p.lifetime) {
-            p.pos += p.vel * deltaTime;
-        }
-    }
-
-    emitter.particleList.erase(
-        std::remove_if(emitter.particleList.begin(), emitter.particleList.end(),
-                       [](auto& p) { return p.age >= p.lifetime; }),
-        emitter.particleList.end());
-
-    std::sort(emitter.particleList.begin(), emitter.particleList.end(),
-              [&](const Particle& a, const Particle& b){
-                  float da = glm::distance(a.pos, cameraPos);
-                  float db = glm::distance(b.pos, cameraPos);
-                  return da > db;
-              });
-  }
-*/
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -309,7 +278,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   };
   cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(resetBarrier));
 
-
+/*
   std::cout << "Before SPAWN after resetting output buffer counter:" << std::endl;
   std::cout << (useAasInput ? "Output buffer B" : "Output buffer A") << std::endl;
   uint32_t aliveA = *reinterpret_cast<uint32_t*>(counterBufferA.data());
@@ -317,7 +286,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   uint32_t aliveB = *reinterpret_cast<uint32_t*>(counterBufferB.data());
   std::cout << "Alive particles in B: " << aliveB << std::endl;
   std::cout << std::endl;
-
+*/
   // SPAWN
   cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, spawnPipeline.getVkPipeline());
   auto spawnInfo = etna::get_shader_program("spawn");
@@ -334,27 +303,37 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                             spawnPipeline.getVkPipelineLayout(),
                             0, 1, &spawnVkSet, 0, nullptr);
 
-  struct SpawnPush {
-      glm::vec4 emitterPos;
-      uint32_t spawnCount;
-      float life;
-      uint32_t seed;
-  } pushParams_spawn { glm::vec4(0, 0, 0, 0), 10, 1.0f, (unsigned)std::rand() };
+  for (auto& emitter : emitters) {
+    struct SpawnPush {
+        glm::vec4 emitterPos;
+        uint32_t spawnCount;
+        float life;
+        uint32_t seed;
+    };
 
-  cmd_buf.pushConstants(
-      spawnPipeline.getVkPipelineLayout(),
-      vk::ShaderStageFlagBits::eCompute,
-      0,
-      sizeof(pushParams_spawn),
-      &pushParams_spawn
-  );
-  
-  uint32_t workgroupSize_spawn = 64;
-  uint32_t numGroups_spawn = (maxParticles + workgroupSize_spawn - 1) / workgroupSize_spawn;
-  cmd_buf.dispatch(numGroups_spawn, 1, 1);
+    SpawnPush pushParams_spawn {
+        glm::vec4(emitter.position, 1.0f),
+        static_cast<uint32_t>(emitter.spawnRate * 0.017f), // скільки нових частинок спавнити
+        emitter.particleLifetime,
+        static_cast<uint32_t>(std::rand())
+    };
+
+    cmd_buf.pushConstants(
+        spawnPipeline.getVkPipelineLayout(),
+        vk::ShaderStageFlagBits::eCompute,
+        0,
+        sizeof(pushParams_spawn),
+        &pushParams_spawn
+    );
+
+    uint32_t workgroupSize_spawn = 64;
+    uint32_t numGroups_spawn = (maxParticles + workgroupSize_spawn - 1) / workgroupSize_spawn;
+    cmd_buf.dispatch(numGroups_spawn, 1, 1);
+  }
+
 
   cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(resetBarrier));
-
+/*
   std::cout << "After SPAWN:" << std::endl;
   std::cout << (useAasInput ? "Output buffer B" : "Output buffer A") << std::endl;
   aliveA = *reinterpret_cast<uint32_t*>(counterBufferA.data());
@@ -362,7 +341,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   aliveB = *reinterpret_cast<uint32_t*>(counterBufferB.data());
   std::cout << "Alive particles in B: " << aliveB << std::endl;
   std::cout << std::endl;
-
+*/
   // SIMULATE
   cmd_buf.bindPipeline(vk::PipelineBindPoint::eCompute, simulatePipeline.getVkPipeline());
   auto simInfo = etna::get_shader_program("simulate");
@@ -396,7 +375,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   uint32_t workgroupSize_sim = 256;
   uint32_t numGroups_sim = (maxParticles + workgroupSize_sim - 1) / workgroupSize_sim;
   cmd_buf.dispatch(numGroups_sim, 1, 1);
-
+/*
   std::cout << "After SIMULATE:" << std::endl;
   std::cout << (useAasInput ? "Output buffer B" : "Output buffer A") << std::endl;
   aliveA = *reinterpret_cast<uint32_t*>(counterBufferA.data());
@@ -404,7 +383,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   aliveB = *reinterpret_cast<uint32_t*>(counterBufferB.data());
   std::cout << "Alive particles in B: " << aliveB << std::endl;
   std::cout << std::endl;
-
+*/
 
   vk::BufferMemoryBarrier2 counterBarrier{
       .srcStageMask = vk::PipelineStageFlagBits2::eComputeShader,
@@ -587,7 +566,7 @@ cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(indirectBa
       }
     }
 */
-
+/*
     struct DrawIndirectCmd {
         uint32_t vertexCount;
         uint32_t instanceCount;
@@ -600,7 +579,7 @@ cmd_buf.pipelineBarrier2(vk::DependencyInfo{}.setBufferMemoryBarriers(indirectBa
     std::cout << "instanceCount = " << indirectCommands.instanceCount << std::endl;
     std::cout << "firstVertex = " << indirectCommands.firstVertex << std::endl;
     std::cout << "firstInstance = " << indirectCommands.firstInstance << std::endl;
-
+*/
     cmd_buf.drawIndirect(indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
     useAasInput = !useAasInput;
 
@@ -643,7 +622,6 @@ void WorldRenderer::drawGui()
             .initialSpeed = 1.0f,
             .particleSize = 0.01f,
             .particleColor = {0.0f, 0.0f, 1.0f},
-            .particleList = {}
         });
     }
 
@@ -686,18 +664,3 @@ void WorldRenderer::drawGui()
   ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Press 'B' to recompile and reload shaders");
   ImGui::End();
 }
-/*
-void WorldRenderer::spawnParticles(Emitter& emitter, float deltaTime) {
-    int count = static_cast<int>(emitter.spawnRate * deltaTime);
-
-    for (int i = 0; i < count; i++) {
-        Particle p;
-        p.pos = emitter.position;
-        p.vel = glm::sphericalRand(1.0f) * emitter.initialSpeed;
-        p.lifetime = emitter.particleLifetime;
-        p.age = 0.0f;
-
-        emitter.particleList.push_back(p);
-    }
-}
-*/

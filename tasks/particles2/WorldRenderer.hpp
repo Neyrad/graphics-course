@@ -90,7 +90,6 @@ private:
     float initialSpeed;
     float particleSize;
     glm::vec3 particleColor;
-    std::vector<Particle> particleList;
   };
 
   std::vector<Emitter> emitters;
@@ -128,8 +127,6 @@ private:
 
   etna::Buffer counterBufferA;
   etna::Buffer counterBufferB;
-
-
 
   glm::uvec2 resolution;
 };
