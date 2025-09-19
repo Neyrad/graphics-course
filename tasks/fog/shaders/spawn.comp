@@ -1,0 +1,78 @@
+#version 450
+layout(local_size_x = 64) in;
+
+struct Particle {
+    vec4 pos;
+    vec4 vel;
+    vec4 color;
+    float lifetime;
+    float age;
+    float size;
+    float pad1;
+};
+
+layout(std430, binding = 1) writeonly buffer OutParticles {
+    Particle outParticles[];
+};
+
+layout(std430, binding = 3) buffer OutCounter {
+    uint outAliveCount;
+};
+
+layout(push_constant) uniform SpawnParams {
+    vec4 emitterPos;
+    vec4 color;
+    uint spawnCount;
+    float life;
+    uint seed;
+    float size;
+    float initialSpeed;
+} spawn;
+
+uint wang_hash(uint s) {
+    s = (s ^ 61u) ^ (s >> 16u);
+    s *= 9u;
+    s = s ^ (s >> 4u);
+    s *= 0x27d4eb2du;
+    s = s ^ (s >> 15u);
+    return s;
+}
+
+float rand01(inout uint state) {
+    state = wang_hash(state);
+    return float(state) / 4294967295.0;
+}
+
+const uint maxParticles = 10000;
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= spawn.spawnCount) return;
+
+    uint state = spawn.seed + gid * 747796405u;
+
+    float u = rand01(state);
+    float v = rand01(state);
+
+    float theta = 6.2831853 * u;
+    float z = 2.0 * v - 1.0;
+    float r = sqrt(max(0.0, 1.0 - z*z));
+
+    vec3 dir = vec3(r * cos(theta), r * sin(theta), z);
+
+    Particle p;
+    p.pos = spawn.emitterPos;
+    p.vel.xyz = normalize(dir) * spawn.initialSpeed;
+    p.lifetime = spawn.life;
+    p.age = 0.0;
+    p.size = spawn.size;
+    p.color = spawn.color;
+
+    uint idx;
+    do {
+        idx = outAliveCount;
+        if (idx >= maxParticles) return;
+    } while (atomicCompSwap(outAliveCount, idx, idx + 1) != idx);
+
+    outParticles[idx] = p;
+}

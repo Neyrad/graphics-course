@@ -1,0 +1,53 @@
+#version 450
+layout(local_size_x = 256) in;
+
+struct Particle {
+    vec4 pos;
+    vec4 vel;
+    vec4 color;
+    float lifetime;
+    float age;
+    float size;
+    float pad1;
+};
+
+layout(std430, binding = 0) readonly buffer InParticles {
+    Particle inParticles[];
+};
+
+layout(std430, binding = 1) writeonly buffer OutParticles {
+    Particle outParticles[];
+};
+
+layout(std430, binding = 2) buffer InCounter {
+    uint inAliveCount;
+};
+
+layout(std430, binding = 3) buffer OutCounter {
+    uint outAliveCount;
+};
+
+layout(push_constant) uniform SimParams {
+    float dt;
+} sim;
+
+const uint maxParticles = 10000;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= inAliveCount) return;
+    Particle p = inParticles[i];
+
+    p.age += sim.dt;
+    if (p.age > p.lifetime) return;
+
+    p.pos += p.vel * sim.dt;
+
+    uint idx;
+    do {
+        idx = outAliveCount;
+        if (idx >= maxParticles) return;
+    } while (atomicCompSwap(outAliveCount, idx, idx + 1) != idx);
+
+    outParticles[idx] = p;
+}
