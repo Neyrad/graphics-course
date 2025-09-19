@@ -46,7 +46,6 @@ void main() {
     vec3 camRight = vec3(uparams.view[0][0], uparams.view[1][0], uparams.view[2][0]);
     vec3 camUp    = vec3(uparams.view[0][1], uparams.view[1][1], uparams.view[2][1]);
 
-    //Particle p = particles[gl_InstanceIndex];
     Particle p = particles[indices[gl_InstanceIndex]];
 
     vec3 worldPos = p.pos.xyz + (camRight * corner.x + camUp * corner.y) * p.size;

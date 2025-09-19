@@ -38,12 +38,10 @@ void main() {
     if (i >= inAliveCount) return;
     Particle p = inParticles[i];
 
-    // update
     p.age += sim.dt;
     if (p.age > p.lifetime) return;
 
     p.pos += p.vel * sim.dt;
-
 
     uint idx;
     do {
@@ -51,6 +49,5 @@ void main() {
         if (idx >= maxParticles) return;
     } while (atomicCompSwap(outAliveCount, idx, idx + 1) != idx);
 
-    // Тільки тепер можна писати
     outParticles[idx] = p;
 }

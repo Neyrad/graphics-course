@@ -36,14 +36,13 @@ void main() {
     uint idx = gl_GlobalInvocationID.x;
     if (idx >= outAliveCount) return;
 
-    // 1️⃣ ініціалізація
     indices[idx] = idx;
     vec3 pos = outParticles[idx].pos.xyz;
     depths[idx] = distance(pos, push.camPos);
 
-    barrier(); // чекаємо, поки всі depth та indices записані
+    barrier();
 
-    // 2️⃣ Bitonic sort
+    // Bitonic sort
     for (uint k = 2u; k <= outAliveCount; k <<= 1u) {
         for (uint j = k >> 1u; j > 0u; j >>= 1u) {
             uint ixj = idx ^ j;

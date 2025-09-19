@@ -51,19 +51,18 @@ void main() {
 
     uint state = spawn.seed + gid * 747796405u;
 
-    // рівномірне вибирання на сфері
-    float u = rand01(state);  // [0,1]
-    float v = rand01(state);  // [0,1]
+    float u = rand01(state);
+    float v = rand01(state);
 
-    float theta = 6.2831853 * u; // 2πu
-    float z = 2.0 * v - 1.0;     // [-1,1]
+    float theta = 6.2831853 * u;
+    float z = 2.0 * v - 1.0;
     float r = sqrt(max(0.0, 1.0 - z*z));
 
     vec3 dir = vec3(r * cos(theta), r * sin(theta), z);
 
     Particle p;
     p.pos = spawn.emitterPos;
-    p.vel.xyz = normalize(dir) * spawn.initialSpeed; // напрямок рівномірно на сфері
+    p.vel.xyz = normalize(dir) * spawn.initialSpeed;
     p.lifetime = spawn.life;
     p.age = 0.0;
     p.size = spawn.size;

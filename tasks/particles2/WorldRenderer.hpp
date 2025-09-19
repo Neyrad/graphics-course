@@ -81,7 +81,7 @@ private:
     float lifetime;
     float age;
     float size;
-    float pad1; // вирівнювання до 16 байт
+    float pad1;
   };
 
   struct Emitter {
