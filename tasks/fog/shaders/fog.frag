@@ -4,6 +4,7 @@
 layout(location = 0) in vec4 fragPos;
 layout(location = 1) in vec4 normal;
 layout(location = 2) in vec4 lightSpacePos;
+layout(location = 3) in vec4 coolColor;
 
 //layout(binding = 3) uniform sampler2DShadow shadowMap;
 
@@ -26,10 +27,7 @@ void main() {
     
     float shadowFactor = 1.0;//shadow(lightSpacePos); // від shadow map
 
-    //vec3 color = vec3(1.0, 0.5, 0.2) * diff * shadowFactor;
-    vec3 color = vec3(1.0, 1.0, 0.0);
-    //outColor = vec4(normalize(fragPos.xyz)*0.5 + 0.5, 1.0);
+    vec3 color = coolColor.xyz * diff * shadowFactor;
     //outColor = vec4(color, 1.0);
-    outColor = vec4(1.0, 1.0, 0.0, 1.0);
-
+    outColor = coolColor;
 }

@@ -98,6 +98,14 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
     .name = "shadowSampler"
   }};
 
+  mainViewDepth = ctx.createImage(etna::Image::CreateInfo{
+    .extent = vk::Extent3D{resolution.x, resolution.y, 1},
+    .name = "main_view_depth",
+    .format = vk::Format::eD32Sfloat,
+    .imageUsage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+  });
+
+
   vertices.clear();
 
   // -Z (задня)
@@ -213,12 +221,16 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
         .colorAttachmentFormats = {vk::Format::eB8G8R8A8Srgb},
       }});
 
-  std::vector<vk::Format> swapchain_format_vector;
-  swapchain_format_vector.push_back(swapchain_format);
   graphicsPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "fog",
     etna::GraphicsPipeline::CreateInfo{
-      .fragmentShaderOutput = {.colorAttachmentFormats = swapchain_format_vector}});
+      .fragmentShaderOutput =
+      {
+        .colorAttachmentFormats = {swapchain_format},
+        .depthAttachmentFormat = vk::Format::eD32Sfloat,
+      }
+    }
+  );
 
   emittersPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline("emitters", {
       .blendingConfig = {
@@ -313,9 +325,11 @@ void WorldRenderer::update(FramePacket& FP)
   glm::mat4 model = glm::mat4(1.0f);          // одинична матриця (без трансформацій)
   model = glm::translate(model, glm::vec3(0, 0, 0)); // підняти куб на 1 по Y
   model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
-  model = glm::scale(model, glm::vec3(1.0f)); // зменшити куб удвічі
+  
+  uniformParams.model[0] = model;
 
-  uniformParams.model = model;
+  model = glm::scale(model, glm::vec3(10.0f)); // зменшити куб удвічі
+  //uniformParams.model[1] = model;
 
   std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
 }
@@ -613,7 +627,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       cmd_buf,
       {{0, 0}, {resolution.x, resolution.y}},
       {{ .image = target_image, .view = target_image_view }},
-      {} );
+      {.image = mainViewDepth.get(), .view = mainViewDepth.getView({})} );
 
     auto fogInfo = etna::get_shader_program("fog");
     auto set = etna::create_descriptor_set(

@@ -138,9 +138,9 @@ private:
   etna::Sampler shadowSampler;
   etna::GraphicsPipeline shadowPipeline{};
 
+  etna::Image mainViewDepth;
 
 
-  
   etna::Buffer vertexBuffer;
 
   struct Vertex {
