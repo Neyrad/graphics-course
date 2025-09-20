@@ -632,6 +632,9 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
         // binding 3 -> shadow map
         //etna::Binding{ 3, shadowMap.genBinding(shadowSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) }
+
+        // binding 4 -> vertex buffer
+        etna::Binding{ 4, vertexBuffer.genBinding() },
       });
 
     vk::DescriptorSet vkSet = set.getVkSet();
@@ -646,10 +649,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
-    vk::DeviceSize offsets[] = {0};
-    auto vkVertexBuffer = vertexBuffer.get();
-    cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
-    std::cout << vertices.size() << std::endl;
     cmd_buf.draw(vertices.size(), 1, 0, 0);
   }
 

@@ -12,6 +12,16 @@ layout(binding = 2, set = 0) uniform AppData
   UniformParams uparams;
 };
 
+struct Vertex {
+  vec4 pos;
+  vec4 normal;
+};
+
+layout(std430, binding = 4) readonly buffer Vertices {
+    Vertex vertices[];
+};
+
+
 layout(location = 0) out vec4 fragPos;
 layout(location = 1) out vec4 normal;
 layout(location = 2) out vec4 lightSpacePos;
@@ -34,7 +44,9 @@ void main() {
         vec2(-1.0,  1.0)
     );
 
-    vec3 pos = vec3(quadVerts[gl_VertexIndex], 0.0);
+    //vec3 pos = vec3(quadVerts[gl_VertexIndex], 0.0);
+    
+    vec3 pos = vertices[gl_VertexIndex].pos.xyz;
     gl_Position = uparams.viewProj * vec4(0.5*pos, 1.0);
 
 
