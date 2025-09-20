@@ -83,6 +83,83 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   });
 
   constants.map();
+
+  shadowMap = ctx.createImage(etna::Image::CreateInfo{
+      .extent = vk::Extent3D{1024, 1024, 1}, // розмір карти тіней (1024x1024 ок для початку)
+      .name = "shadowMap",
+      .format = vk::Format::eD32Sfloat,
+      .imageUsage = vk::ImageUsageFlagBits::eDepthStencilAttachment | 
+                    vk::ImageUsageFlagBits::eSampled,
+  });
+
+  shadowSampler = etna::Sampler{etna::Sampler::CreateInfo{
+    .filter = vk::Filter::eLinear,
+    .addressMode = vk::SamplerAddressMode::eClampToEdge,
+    .name = "shadowSampler"
+  }};
+
+  vertices.clear();
+
+  // -Z (задня)
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(0,0,-1,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1,-1,-1,1), glm::vec4(0,0,-1,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1,-1,1), glm::vec4(0,0,-1,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(0,0,-1,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1,-1,1), glm::vec4(0,0,-1,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(0,0,-1,0)});
+
+  // +Z (передня)
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(0,0,1,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1,-1, 1,1), glm::vec4(0,0,1,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,0,1,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(0,0,1,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,0,1,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(0,0,1,0)});
+
+  // -X (ліва)
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(-1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(-1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(-1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(-1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(-1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(-1,0,0,0)});
+
+  // +X (права)
+  vertices.emplace_back(Vertex{glm::vec4(1,-1,-1,1), glm::vec4(1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(1,-1, 1,1), glm::vec4(1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(1, 1, 1,1), glm::vec4(1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(1,-1,-1,1), glm::vec4(1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(1, 1, 1,1), glm::vec4(1,0,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(1, 1,-1,1), glm::vec4(1,0,0,0)});
+
+  // -Y (низ)
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(0,-1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1,-1,-1,1), glm::vec4(0,-1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1,-1, 1,1), glm::vec4(0,-1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(0,-1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1,-1, 1,1), glm::vec4(0,-1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(0,-1,0,0)});
+
+  // +Y (верх)
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(0,1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1,-1,1), glm::vec4(0,1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(0,1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,1,0,0)});
+  vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(0,1,0,0)});
+
+
+  // Створюємо буфер вершин
+  vertexBuffer = ctx.createBuffer(etna::Buffer::CreateInfo{
+      .size = sizeof(Vertex) * vertices.size(),
+      .bufferUsage = vk::BufferUsageFlagBits::eVertexBuffer,
+      .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY,
+      .name = "vertexBuffer"
+  });
+
+  // Копіюємо дані
+  vertexBuffer.map();
+  std::memcpy(vertexBuffer.data(), vertices.data(), sizeof(Vertex) * vertices.size());
 }
 
 void WorldRenderer::loadShaders()
@@ -90,11 +167,11 @@ void WorldRenderer::loadShaders()
   etna::create_program(
     "texture",
     {FOG_SHADERS_ROOT "texture.frag.spv",
-     FOG_SHADERS_ROOT "toy.vert.spv"});
+     FOG_SHADERS_ROOT "fog.vert.spv"});
 
   etna::create_program(
     "fog",
-    {FOG_SHADERS_ROOT "toy.frag.spv", FOG_SHADERS_ROOT "toy.vert.spv"});
+    {FOG_SHADERS_ROOT "fog.frag.spv", FOG_SHADERS_ROOT "fog.vert.spv"});
 
   etna::create_program(
     "emitters",
@@ -120,6 +197,11 @@ void WorldRenderer::loadShaders()
     "sort",
     { FOG_SHADERS_ROOT "sort.comp.spv" }
   );
+
+  etna::create_program(
+    "shadow",
+    {FOG_SHADERS_ROOT "shadow.frag.spv",
+    FOG_SHADERS_ROOT "shadow.vert.spv"});
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
@@ -183,6 +265,15 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       "sort",
       etna::ComputePipeline::CreateInfo{}
   );
+
+  shadowPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
+      "shadow",
+      etna::GraphicsPipeline::CreateInfo{
+          .fragmentShaderOutput = {
+              .depthAttachmentFormat = vk::Format::eD32Sfloat
+          }
+      }
+  );
 }
 
 void WorldRenderer::update(FramePacket& FP)
@@ -199,29 +290,34 @@ void WorldRenderer::update(FramePacket& FP)
   this->time = FP.time;
   this->mouse = FP.mouse;
 
-  // Upload everything to GPU-mapped memory
-  {
-    float yOffsets[N_PLANETS] = {4.f, 6.f, 5.f, 7.f, 3.f};
-    float speedModifiers[N_PLANETS] = {1.f, 2.f, 0.5f, 2.5f, 0.7f};
+  uniformParams.viewProj = worldViewProj;
+  uniformParams.invViewProj = glm::inverse(worldViewProj);
+  uniformParams.view = view;
+  uniformParams.camPos = glm::vec4(cameraPos, 1);
 
-    for (int i = 0; i < N_PLANETS; ++i) {
-        planets[i].orbitAngle += planetSpeed * deltaTime;
+  // світловий view-proj
+  glm::mat4 lightView = glm::lookAt(
+      glm::vec3(lightPos),  // позиція світла
+      glm::vec3(0.0f),      // дивиться в центр
+      glm::vec3(0, 1, 0)    // вгору
+  );
 
-        uniformParams.planet[i] = glm::vec4(
-            cos(planets[i].orbitAngle * speedModifiers[i]) * planets[i].radius,
-            yOffsets[i] + sin(planets[i].orbitAngle * 0.2f) * planets[i].radius * 0.2f,
-            sin(planets[i].orbitAngle * speedModifiers[i]) * planets[i].radius,
-            i
-        );
-    }
+  glm::mat4 lightProj = glm::ortho(
+      -20.0f, 20.0f,
+      -20.0f, 20.0f,
+      0.1f, 100.0f
+  );
 
-    uniformParams.viewProj = worldViewProj;
-    uniformParams.invViewProj = glm::inverse(worldViewProj);
-    uniformParams.view = view;
-    uniformParams.camPos = glm::vec4(cameraPos, 1);
+  uniformParams.lightVP = lightProj * lightView;
 
-    std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
-  }
+  glm::mat4 model = glm::mat4(1.0f);          // одинична матриця (без трансформацій)
+  model = glm::translate(model, glm::vec3(0, 0, 0)); // підняти куб на 1 по Y
+  model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
+  model = glm::scale(model, glm::vec3(1.0f)); // зменшити куб удвічі
+
+  uniformParams.model = model;
+
+  std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -441,8 +537,45 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   /// GRAPHICS PART
   ///
   ///
+/*
+  // --- PASS 0: shadow map ---
+  {
+    etna::set_state(cmd_buf, shadowMap.get(),
+      vk::PipelineStageFlagBits2::eEarlyFragmentTests,
+      vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+      vk::ImageLayout::eDepthAttachmentOptimal,
+      vk::ImageAspectFlagBits::eDepth);
 
+    etna::flush_barriers(cmd_buf);
 
+    etna::RenderTargetState shadowRT(
+      cmd_buf,
+      {{0,0}, {1024, 1024}},
+      {{ .image = shadowMap.get(), .view = shadowMap.getView({}) }},
+      {}
+    );
+
+    auto shadowInfo = etna::get_shader_program("shadow");
+    auto set = etna::create_descriptor_set(
+      shadowInfo.getDescriptorLayoutId(0),
+      cmd_buf,
+      {
+        // binding 2 -> uniform buffer
+        etna::Binding{ 2, constants.genBinding() },
+      });
+
+    vk::DescriptorSet vkSet = set.getVkSet();
+    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, shadowPipeline.getVkPipeline());
+    cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                               shadowPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
+
+    vk::DeviceSize offsets[] = {0};
+    auto vkVertexBuffer = vertexBuffer.get();
+    cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
+    cmd_buf.draw(vertices.size(), 1, 0, 0);
+  }
+*/
+/*
   // --- PASS 1: render to offscreen 'image' ---
   etna::set_state(cmd_buf, image.get(),
                   vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -466,7 +599,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
     cmd_buf.draw(3, 1, 0, 0);
   }
-
+*/
   etna::set_state(cmd_buf, image.get(),
                   vk::PipelineStageFlagBits2::eFragmentShader,
                   vk::AccessFlagBits2::eShaderRead,
@@ -488,14 +621,17 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       cmd_buf,
       {
         // binding 0 -> what has been rendered in PASS 1
-        etna::Binding{ 0, image.genBinding(textureSampler.get(),
-                                           vk::ImageLayout::eShaderReadOnlyOptimal) },
+        //etna::Binding{ 0, image.genBinding(textureSampler.get(),
+        //                                   vk::ImageLayout::eShaderReadOnlyOptimal) },
         // binding 1 -> PNG texture
-        etna::Binding{ 1, texture.genBinding(textureSampler.get(),
-                                             vk::ImageLayout::eShaderReadOnlyOptimal) },
+        //etna::Binding{ 1, texture.genBinding(textureSampler.get(),
+        //                                     vk::ImageLayout::eShaderReadOnlyOptimal) },
 
         // binding 2 -> uniform buffer
-        etna::Binding{ 2, constants.genBinding() }
+        etna::Binding{ 2, constants.genBinding() },
+
+        // binding 3 -> shadow map
+        //etna::Binding{ 3, shadowMap.genBinding(shadowSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) }
       });
 
     vk::DescriptorSet vkSet = set.getVkSet();
@@ -504,13 +640,17 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
     struct Params {
-      glm::vec4 cameraPos; glm::vec4 lightPos; glm::uvec2 res; glm::uvec2 mouse; float time; float planetSpeed;
-    } params{glm::vec4(cameraPos, 1), glm::vec4(lightPos, 1), resolution, mouse, time, planetSpeed};
+      glm::vec4 lightPos;
+    } params { glm::vec4(lightPos, 1) };
 
     cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
-    cmd_buf.draw(3, 1, 0, 0);
+    vk::DeviceSize offsets[] = {0};
+    auto vkVertexBuffer = vertexBuffer.get();
+    cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
+    std::cout << vertices.size() << std::endl;
+    cmd_buf.draw(vertices.size(), 1, 0, 0);
   }
 
   for (size_t idx : emitterRenderOrder) {

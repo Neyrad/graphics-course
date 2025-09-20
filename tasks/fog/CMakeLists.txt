@@ -10,8 +10,10 @@ target_link_libraries(fog
   PRIVATE glfw etna glm::glm wsi gui scene render_utils)
 
 target_add_shaders(fog
-  shaders/toy.vert
-  shaders/toy.frag
+  shaders/fog.vert
+  shaders/fog.frag
+  shaders/shadow.vert
+  shaders/shadow.frag
   shaders/texture.frag
   shaders/particles.vert
   shaders/particles.frag

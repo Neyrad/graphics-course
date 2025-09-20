@@ -3,15 +3,14 @@
 
 #include "cpp_glsl_compat.h"
 
-#define N_PLANETS 5
-
 struct UniformParams
 {
+  shader_mat4 model;
+  shader_mat4 lightVP;
   shader_mat4 viewProj;
   shader_mat4 invViewProj;
   shader_mat4 view;
   shader_vec4 camPos;
-  shader_vec4 planet[N_PLANETS];
   shader_vec3 spaceColor;
   float pad1;
   shader_vec3 waveColor;

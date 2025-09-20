@@ -58,11 +58,12 @@ private:
 
   UniformParams uniformParams
   {
+    .model = {},
+    .lightVP = {},
     .viewProj = {},
     .invViewProj = {},
     .view = {},
     .camPos = {},
-    .planet = {},
     .spaceColor = {0.0f, 0.0f, 0.0f},
     .pad1 = {},
     .waveColor = {0.15f, 0.75f, 0.03f},
@@ -131,4 +132,20 @@ private:
   etna::ComputePipeline sortPipeline{};
 
   glm::uvec2 resolution;
+
+  // shadow map
+  etna::Image shadowMap;
+  etna::Sampler shadowSampler;
+  etna::GraphicsPipeline shadowPipeline{};
+
+
+
+  
+  etna::Buffer vertexBuffer;
+
+  struct Vertex {
+      glm::vec4 pos;
+      glm::vec4 normal;
+  };
+  std::vector<Vertex> vertices;
 };
