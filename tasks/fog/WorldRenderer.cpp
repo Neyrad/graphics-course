@@ -27,6 +27,8 @@ WorldRenderer::WorldRenderer()
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 {
+  //std::cout << "alloc res" << std::endl;
+
   resolution = swapchain_resolution;
 
   auto& ctx = etna::get_context();
@@ -168,10 +170,20 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   // Копіюємо дані
   vertexBuffer.map();
   std::memcpy(vertexBuffer.data(), vertices.data(), sizeof(Vertex) * vertices.size());
+
+  glm::mat4x4 smallCube = glm::mat4x4(1.0f);
+  glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(10.0f));
+  models.push_back(smallCube);
+  models.push_back(largeCube);
+  //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
+  //model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
+
 }
 
 void WorldRenderer::loadShaders()
 {
+  //std::cout << "load shaders" << std::endl;
+
   etna::create_program(
     "texture",
     {FOG_SHADERS_ROOT "texture.frag.spv",
@@ -210,17 +222,22 @@ void WorldRenderer::loadShaders()
     "shadow",
     {FOG_SHADERS_ROOT "shadow.frag.spv",
     FOG_SHADERS_ROOT "shadow.vert.spv"});
+
+    //std::cout << "load shaders SUCCESS" << std::endl;
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
 {
+  //std::cout << "setup pipelines" << std::endl;
+/*
   texturePipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "texture",
     etna::GraphicsPipeline::CreateInfo{
       .fragmentShaderOutput = {
         .colorAttachmentFormats = {vk::Format::eB8G8R8A8Srgb},
       }});
-
+*/
+        //std::cout << "setup pipelines" << std::endl;
   graphicsPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "fog",
     etna::GraphicsPipeline::CreateInfo{
@@ -231,7 +248,7 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       }
     }
   );
-
+  //std::cout << "setup pipelines" << std::endl;
   emittersPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline("emitters", {
       .blendingConfig = {
           .attachments={
@@ -257,27 +274,27 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
         .depthAttachmentFormat = vk::Format::eD32Sfloat,
       }
   });
-
+  //std::cout << "setup pipelines" << std::endl;
   simulatePipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "simulate",
       etna::ComputePipeline::CreateInfo{}
   );
-
+  //std::cout << "setup pipelines" << std::endl;
   spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "spawn",
       etna::ComputePipeline::CreateInfo{}
   );
-
+  //std::cout << "setup pipelines" << std::endl;
   writeIndirectPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "writeIndirect",
       etna::ComputePipeline::CreateInfo{}
   );
-
+  //std::cout << "setup pipelines" << std::endl;
   sortPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "sort",
       etna::ComputePipeline::CreateInfo{}
   );
-
+  //std::cout << "setup pipelines" << std::endl;
   shadowPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
       "shadow",
       etna::GraphicsPipeline::CreateInfo{
@@ -286,10 +303,13 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
           }
       }
   );
+
+  //std::cout << "setup pipelines SUCCESS" << std::endl;
 }
 
 void WorldRenderer::update(FramePacket& FP)
 {
+  //std::cout << "update" << std::endl;
   // calc camera matrix
   {
     const float aspect = float(resolution.x) / float(resolution.y);
@@ -308,13 +328,13 @@ void WorldRenderer::update(FramePacket& FP)
   uniformParams.camPos = glm::vec4(cameraPos, 1);
 
   // світловий view-proj
-  glm::mat4 lightView = glm::lookAt(
+  glm::mat4x4 lightView = glm::lookAt(
       glm::vec3(lightPos),  // позиція світла
       glm::vec3(0.0f),      // дивиться в центр
       glm::vec3(0, 1, 0)    // вгору
   );
 
-  glm::mat4 lightProj = glm::ortho(
+  glm::mat4x4 lightProj = glm::ortho(
       -20.0f, 20.0f,
       -20.0f, 20.0f,
       0.1f, 100.0f
@@ -322,21 +342,14 @@ void WorldRenderer::update(FramePacket& FP)
 
   uniformParams.lightVP = lightProj * lightView;
 
-  glm::mat4 model = glm::mat4(1.0f);          // одинична матриця (без трансформацій)
-  model = glm::translate(model, glm::vec3(0, 0, 0)); // підняти куб на 1 по Y
-  model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
-  
-  uniformParams.model[0] = model;
-
-  model = glm::scale(model, glm::vec3(10.0f)); // зменшити куб удвічі
-  //uniformParams.model[1] = model;
-
   std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                 vk::Image target_image, vk::ImageView target_image_view)
 {
+  //std::cout << "render world" << std::endl;
+
   ///
   ///
   /// COMPUTE PART
@@ -656,14 +669,16 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
-    struct Params {
-      glm::vec4 lightPos;
-    } params { glm::vec4(lightPos, 1) };
+    for (auto& model : models) {
+      struct Params {
+        glm::mat4x4 model;
+        glm::vec4 lightPos;
+      } params { model, glm::vec4(lightPos, 1) };
 
-    cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
-                          vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
-
-    cmd_buf.draw(vertices.size(), 1, 0, 0);
+      cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
+                            vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
+      cmd_buf.draw(vertices.size(), 1, 0, 0);
+    }
   }
 
   for (size_t idx : emitterRenderOrder) {

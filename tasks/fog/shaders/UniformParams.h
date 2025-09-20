@@ -3,11 +3,8 @@
 
 #include "cpp_glsl_compat.h"
 
-#define N_MODELS 1
-
 struct UniformParams
 {
-  shader_mat4 model[N_MODELS];
   shader_mat4 lightVP;
   shader_mat4 viewProj;
   shader_mat4 invViewProj;

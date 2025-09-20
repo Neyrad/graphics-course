@@ -58,7 +58,6 @@ private:
 
   UniformParams uniformParams
   {
-    .model = {},
     .lightVP = {},
     .viewProj = {},
     .invViewProj = {},
@@ -148,4 +147,6 @@ private:
       glm::vec4 normal;
   };
   std::vector<Vertex> vertices;
+
+  std::vector<glm::mat4x4> models;
 };

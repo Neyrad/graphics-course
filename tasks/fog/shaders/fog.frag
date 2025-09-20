@@ -9,6 +9,7 @@ layout(location = 3) in vec4 coolColor;
 //layout(binding = 3) uniform sampler2DShadow shadowMap;
 
 layout(push_constant) uniform Push {
+    mat4 model;
     vec4 lightPos;
 } push;
 

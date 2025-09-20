@@ -23,15 +23,19 @@ layout(location = 1) out vec4 normal;
 layout(location = 2) out vec4 lightSpacePos;
 layout(location = 3) out vec4 coolColor;
 
+layout(push_constant) uniform Push {
+    mat4 model;
+    vec4 lightPos;
+} push;
+
 void main() {
     vec3 pos = vertices[gl_VertexIndex].pos.xyz;
-    vec4 worldPos = uparams.model[0] * vec4(pos, 1.0);
+    vec4 worldPos = push.model * vec4(pos, 1.0);
 
     fragPos = worldPos;
-    normal = vec4(mat3(uparams.model[0]) * vertices[gl_VertexIndex].normal.xyz, 1.0);
+    normal = vec4(mat3(push.model) * vertices[gl_VertexIndex].normal.xyz, 1.0);
     lightSpacePos = uparams.lightVP * worldPos;
 
-    //gl_Position = uparams.viewProj * vec4(pos, 1.0);
     gl_Position = uparams.viewProj * vec4(worldPos.xyz, 1.0);
     
     if (gl_VertexIndex < 6) {
