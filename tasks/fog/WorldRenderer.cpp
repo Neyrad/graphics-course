@@ -172,7 +172,8 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   std::memcpy(vertexBuffer.data(), vertices.data(), sizeof(Vertex) * vertices.size());
 
   glm::mat4x4 smallCube = glm::mat4x4(1.0f);
-  glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(10.0f));
+  glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(100.0f));
+  largeCube = glm::translate(largeCube, glm::vec3(0, 0.9899, 0));
   models.push_back(smallCube);
   models.push_back(largeCube);
   //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
@@ -669,11 +670,12 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
-    for (auto& model : models) {
+    for (uint32_t i = 0; i < models.size(); ++i) {
       struct Params {
         glm::mat4x4 model;
         glm::vec4 lightPos;
-      } params { model, glm::vec4(lightPos, 1) };
+        uint32_t id;
+      } params { models[i], glm::vec4(lightPos, 1), i };
 
       cmd_buf.pushConstants(graphicsPipeline.getVkPipelineLayout(),
                             vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
