@@ -27,7 +27,7 @@ WorldRenderer::WorldRenderer()
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 {
-  //std::cout << "alloc res" << std::endl;
+  ////std::cout << "alloc res" << std::endl;
 
   resolution = swapchain_resolution;
 
@@ -183,7 +183,7 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 
 void WorldRenderer::loadShaders()
 {
-  //std::cout << "load shaders" << std::endl;
+  ////std::cout << "load shaders" << std::endl;
 
   etna::create_program(
     "texture",
@@ -224,7 +224,7 @@ void WorldRenderer::loadShaders()
     {FOG_SHADERS_ROOT "shadow.frag.spv",
     FOG_SHADERS_ROOT "shadow.vert.spv"});
 
-    //std::cout << "load shaders SUCCESS" << std::endl;
+    ////std::cout << "load shaders SUCCESS" << std::endl;
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
@@ -238,7 +238,7 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
         .colorAttachmentFormats = {vk::Format::eB8G8R8A8Srgb},
       }});
 */
-        //std::cout << "setup pipelines" << std::endl;
+        ////std::cout << "setup pipelines" << std::endl;
   graphicsPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "fog",
     etna::GraphicsPipeline::CreateInfo{
@@ -249,7 +249,7 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       }
     }
   );
-  //std::cout << "setup pipelines" << std::endl;
+  ////std::cout << "setup pipelines" << std::endl;
   emittersPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline("emitters", {
       .blendingConfig = {
           .attachments={
@@ -275,27 +275,27 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
         .depthAttachmentFormat = vk::Format::eD32Sfloat,
       }
   });
-  //std::cout << "setup pipelines" << std::endl;
+  ////std::cout << "setup pipelines" << std::endl;
   simulatePipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "simulate",
       etna::ComputePipeline::CreateInfo{}
   );
-  //std::cout << "setup pipelines" << std::endl;
+  ////std::cout << "setup pipelines" << std::endl;
   spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "spawn",
       etna::ComputePipeline::CreateInfo{}
   );
-  //std::cout << "setup pipelines" << std::endl;
+  ////std::cout << "setup pipelines" << std::endl;
   writeIndirectPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "writeIndirect",
       etna::ComputePipeline::CreateInfo{}
   );
-  //std::cout << "setup pipelines" << std::endl;
+  ////std::cout << "setup pipelines" << std::endl;
   sortPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "sort",
       etna::ComputePipeline::CreateInfo{}
   );
-  //std::cout << "setup pipelines" << std::endl;
+  ////std::cout << "setup pipelines" << std::endl;
   shadowPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
       "shadow",
       etna::GraphicsPipeline::CreateInfo{
@@ -344,6 +344,7 @@ void WorldRenderer::update(FramePacket& FP)
   uniformParams.lightVP = lightProj * lightView;
 
   std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
+  //std::cout << "update success" << std::endl;
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
@@ -565,7 +566,9 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   /// GRAPHICS PART
   ///
   ///
-/*
+
+  //std::cout << "render world starting gra[hics part]" << std::endl;
+
   // --- PASS 0: shadow map ---
   {
     etna::set_state(cmd_buf, shadowMap.get(),
@@ -575,34 +578,46 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       vk::ImageAspectFlagBits::eDepth);
 
     etna::flush_barriers(cmd_buf);
-
+//std::cout << "render world pass 0" << std::endl;
     etna::RenderTargetState shadowRT(
       cmd_buf,
       {{0,0}, {1024, 1024}},
-      {{ .image = shadowMap.get(), .view = shadowMap.getView({}) }},
-      {}
+      {},
+      { .image = shadowMap.get(), .view = shadowMap.getView({}) }
     );
-
+//std::cout << "render world pass 0" << std::endl;
     auto shadowInfo = etna::get_shader_program("shadow");
+    //std::cout << "render world pass 0" << std::endl;
     auto set = etna::create_descriptor_set(
       shadowInfo.getDescriptorLayoutId(0),
       cmd_buf,
       {
-        // binding 2 -> uniform buffer
-        etna::Binding{ 2, constants.genBinding() },
-      });
+        // binding 1 -> uniform buffer
+        etna::Binding{ 1, constants.genBinding() },
 
+        // binding 2 -> vertex buffer
+        etna::Binding{ 2, vertexBuffer.genBinding() },
+      });
+//std::cout << "render world pass 0" << std::endl;
     vk::DescriptorSet vkSet = set.getVkSet();
+    //std::cout << "render world pass 0" << std::endl;
     cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, shadowPipeline.getVkPipeline());
+    //std::cout << "render world pass 0" << std::endl;
     cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                shadowPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
+    //std::cout << "render world pass 0" << std::endl;
     vk::DeviceSize offsets[] = {0};
     auto vkVertexBuffer = vertexBuffer.get();
+    //std::cout << "render world pass 0" << std::endl;
     cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
+    //std::cout << "render world pass 0" << std::endl;
     cmd_buf.draw(vertices.size(), 1, 0, 0);
+    //std::cout << "render world pass 0" << std::endl;
   }
-*/
+
+
+  //std::cout << "render world pass 0 success" << std::endl;
 /*
   // --- PASS 1: render to offscreen 'image' ---
   etna::set_state(cmd_buf, image.get(),
@@ -659,7 +674,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         etna::Binding{ 2, constants.genBinding() },
 
         // binding 3 -> shadow map
-        //etna::Binding{ 3, shadowMap.genBinding(shadowSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) }
+        etna::Binding{ 3, shadowMap.genBinding(shadowSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) },
 
         // binding 4 -> vertex buffer
         etna::Binding{ 4, vertexBuffer.genBinding() },
@@ -706,6 +721,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
     emitter.useAasInput = !emitter.useAasInput;
   }
+
+  //std::cout << "render world success" << std::endl;
 }
 
 void WorldRenderer::drawGui()

@@ -51,7 +51,7 @@ void main() {
       coolColor = vec4(0.0, 0.0, 1.0, 1.0);
     } else if (gl_VertexIndex >= 24 && gl_VertexIndex < 30) {
       skyboxColor = vec4(0.0, 1.0, 0.0, 1.0);
-      coolColor = vec4(1.0, 0.0, 1.0, 1.0);
+      coolColor = vec4(1.0, 1.0, 0.0, 1.0);
     } else if (gl_VertexIndex >= 30 && gl_VertexIndex < 36) {
       coolColor = vec4(1.0, 1.0, 0.0, 1.0);
     }

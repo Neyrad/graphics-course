@@ -3,13 +3,21 @@
 
 #include "UniformParams.h"
 
-layout(location = 0) in vec4 inPos;
-
-layout(binding = 2, set = 0) uniform AppData
+layout(binding = 1, set = 0) uniform AppData
 {
   UniformParams uparams;
 };
 
+struct Vertex {
+  vec4 pos;
+  vec4 normal;
+};
+
+layout(binding = 2) readonly buffer Vertices {
+    Vertex vertices[];
+};
+
 void main() {
-    gl_Position = uparams.lightVP * vec4(inPos.xyz, 1.0);
+    vec3 pos = vertices[gl_VertexIndex].pos.xyz;
+    gl_Position = uparams.lightVP * vec4(pos, 1.0);
 }
