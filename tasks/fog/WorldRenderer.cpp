@@ -21,7 +21,7 @@ const uint32_t maxParticles = 10000;
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
-  lightPos = glm::vec3(12.0f, 12.0f, 10.0f);
+  lightPos = glm::vec3(12.0f, 12.0f, 0.0f);
   std::srand(std::time(nullptr));
 }
 
@@ -173,9 +173,9 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 
   glm::mat4x4 smallCube = glm::mat4x4(1.0f);
   glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(10.0f, 1.0f, 10.0f));
-  glm::mat4x4 secondCube = glm::translate(smallCube, glm::vec3(0, 0, 1.2f));
+  glm::mat4x4 secondCube = glm::translate(smallCube, glm::vec3(0, 0, 1.01f));
 
-  smallCube = glm::translate(smallCube, glm::vec3(0, 0, -1.2f));
+  smallCube = glm::translate(smallCube, glm::vec3(0, 0, -1.01f));
   largeCube = glm::translate(largeCube, glm::vec3(0, -2, 0));
   
   models.push_back(smallCube);

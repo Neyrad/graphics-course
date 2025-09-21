@@ -29,7 +29,8 @@ layout(location = 0) out vec4 outColor;
 // Допоміжна функція для перевірки тіні
 // ======================
 float sampleShadow(vec3 worldPos) {
-    vec4 lightSpace = (push.model * vec4(worldPos, 1.0));
+    //vec4 lightSpace = (push.model * vec4(worldPos, 1.0));
+    vec4 lightSpace = uparams.lightVP * vec4(worldPos, 1.0);
     lightSpace /= lightSpace.w;
     vec3 projCoords = lightSpace.xyz * 0.5 + 0.5;
 
@@ -38,7 +39,10 @@ float sampleShadow(vec3 worldPos) {
     if (outOfView) return 1.0;
 
     float shadowDepth = textureLod(shadowMap, projCoords.xy, 0).r;
-    return projCoords.z <= shadowDepth + 0.001 ? 1.0 : 0.0;
+    //return projCoords.z <= shadowDepth + 0.001 ? 1.0 : 0.0;
+    float bias = 0.001;
+    float shadow = projCoords.z - bias > shadowDepth ? 0.0 : 1.0;
+    return shadow;
 }
 
 void main() {
@@ -57,7 +61,7 @@ void main() {
     vec4 chartreuse  = vec4(0.5, 1.0, 0.0, 1.0);
     vec4 lightColor1 = mix(dark_violet, chartreuse, abs(sin(0.0)));
     vec4 lightColor  = max(dot(normal.xyz, lightDir), 0.0) * lightColor1;
-    float ambient = 0.05;
+    float ambient = 0.04;
 
     vec3 sceneColor = ((lightColor * shadow + ambient) * vec4(baseColor.xyz, 1.0)).rgb;
 
@@ -85,11 +89,14 @@ void main() {
         float absorption = exp(-localDensity * dist * stepSize);
 
         float phase = max(dot(rayDir, normalize(push.lightPos.xyz - samplePos)), 0.0);
+
+
         accumLight += transmittance * shadowFactor * localDensity * fogColor * phase;
         transmittance *= absorption;
     }
 
-    vec3 finalColor = mix(sceneColor, fogColor + accumLight * 2.0, 1.0 - transmittance);
+    float godRayIntensity = 9.0;
+    vec3 finalColor = mix(sceneColor, fogColor + accumLight * godRayIntensity, 1.0 - transmittance);
     outColor = vec4(finalColor, 1.0);
 }
 /*
