@@ -21,7 +21,7 @@ const uint32_t maxParticles = 10000;
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
-  lightPos = glm::vec3(0.0f, -6.0f, -5.0f);
+  lightPos = glm::vec3(12.0f, 12.0f, 10.0f);
   std::srand(std::time(nullptr));
 }
 
@@ -172,8 +172,8 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   std::memcpy(vertexBuffer.data(), vertices.data(), sizeof(Vertex) * vertices.size());
 
   glm::mat4x4 smallCube = glm::mat4x4(1.0f);
-  glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(100.0f));
-  largeCube = glm::translate(largeCube, glm::vec3(0, 0.9899, 0));
+  glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(10.0f, 1.0f, 10.0f));
+  largeCube = glm::translate(largeCube, glm::vec3(0, -2, 0));
   models.push_back(smallCube);
   models.push_back(largeCube);
   //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
@@ -335,11 +335,18 @@ void WorldRenderer::update(FramePacket& FP)
       glm::vec3(0, 1, 0)    // вгору
   );
 
+  //float halfSize = 10.0f; // половина розміру куба
+  //float nearPlane = 1.0f; // ближня межа, можна трохи більше, щоб включити все
+  //float farPlane  = 500.0f;  // дальня межа
+
+  farPlane = abs(lightPos.x) + abs(lightPos.y) + abs(lightPos.z);
+
   glm::mat4x4 lightProj = glm::ortho(
-      -20.0f, 20.0f,
-      -20.0f, 20.0f,
-      0.1f, 100.0f
+      -halfSize, halfSize,   // left, right
+      -halfSize, halfSize,   // bottom, top
+      nearPlane, farPlane    // near, far
   );
+
 
   uniformParams.lightVP = lightProj * lightView;
 
@@ -686,6 +693,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
     for (uint32_t i = 0; i < models.size(); ++i) {
+      //if (i == 1) break;
+
       struct Params {
         glm::mat4x4 model;
         glm::vec4 lightPos;
@@ -731,6 +740,10 @@ void WorldRenderer::drawGui()
 
   ImGui::SliderFloat("Planet speed", &planetSpeed, 0.0f, 20.0f);
 
+  ImGui::SliderFloat("Light Box X and Y limits", &halfSize, 0.0f, 500.0f);
+  ImGui::SliderFloat("nearPlane", &nearPlane, 0.0f, 100.0f);
+  ImGui::SliderFloat("farPlane", &farPlane, 0.0f, 100.0f);
+
   ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 300.0f);
 
   float spaceColor[3]{uniformParams.spaceColor.r, uniformParams.spaceColor.g, uniformParams.spaceColor.b};
@@ -750,7 +763,12 @@ void WorldRenderer::drawGui()
     uniformParams.waveColor = {0.15f, 0.75f, 0.03f};
   }
 
-  ImGui::SliderFloat3("Light Position", &lightPos.x, -200.f, 200.f);
+  float light[3]{lightPos.x, lightPos.y, lightPos.z};
+  ImGui::Text("Light Position");
+  ImGui::SliderFloat("X", &light[0], -40.f, 40.f);
+  ImGui::SliderFloat("Y", &light[1], 0.f, 40.f);
+  ImGui::SliderFloat("Z", &light[2], -40.f, 40.f);
+  lightPos = {light[0], light[1], light[2]};
 
   if (ImGui::CollapsingHeader("Emitters")) {
     if (ImGui::Button("Add Emitter")) {

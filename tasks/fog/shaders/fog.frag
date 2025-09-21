@@ -17,23 +17,24 @@ layout(push_constant) uniform Push {
 
 layout(location = 0) out vec4 outColor;
 
-float shadow(vec4 lightSpacePos) {
-    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
-    projCoords = projCoords * 0.5 + 0.5; // [0,1]
-    
-    float closestDepth = texture(shadowMap, projCoords.xy).r; // беремо тільки xy
-    float currentDepth = projCoords.z;
-    
-    return currentDepth > closestDepth ? 0.0 : 1.0; // простий shadow test
-}
-
 void main() {
     vec3 lightDir = normalize(push.lightPos.xyz - fragPos.xyz);
-    float diff = max(dot(normalize(normal.xyz), lightDir), 0.0);
-    
-    float shadowFactor = shadow(lightSpacePos); // від shadow map
 
     vec4 baseColor = push.id == 0 ? coolColor : skyboxColor;
-    vec3 color = baseColor.xyz * diff * shadowFactor;
-    outColor = vec4(color, 1.0);
+    
+    vec3 projCoords = (lightSpacePos.xyz / lightSpacePos.w) * 0.5 + 0.5;
+
+    const bool  outOfView = (projCoords.x < 0.0001f || projCoords.x > 0.9999f || projCoords.y < 0.0091f || projCoords.y > 0.9999f);
+    const float shadow    = ((projCoords.z < textureLod(shadowMap, projCoords.xy, 0).x + 0.001f) || outOfView) ? 1.0f : 0.0f;
+
+    const vec4 dark_violet = vec4(0.59f, 0.0f, 0.82f, 1.0f);
+    const vec4 chartreuse  = vec4(0.5f, 1.0f, 0.0f, 1.0f);
+
+    const vec4 lightColor1 = mix(dark_violet, chartreuse, abs(sin(0.0f)));
+    const vec4 lightColor2 = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    const vec4 lightColor = max(dot(normal.xyz, lightDir), 0.0f) * lightColor1;
+    const float ambient = 0.05;
+    // Light formula is pretty arbitrary and most definitely wrong
+    outColor = (lightColor * shadow + ambient) * vec4(baseColor.xyz, 1.0f);
 }

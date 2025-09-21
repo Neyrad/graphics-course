@@ -149,4 +149,8 @@ private:
   std::vector<Vertex> vertices;
 
   std::vector<glm::mat4x4> models;
+
+  float halfSize = 48.0f;
+  float nearPlane = 0.0f; // ближня межа, можна трохи більше, щоб включити все
+  float farPlane  = 32.0f;  // дальня межа
 };
