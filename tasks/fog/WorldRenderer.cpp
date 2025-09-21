@@ -173,9 +173,14 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 
   glm::mat4x4 smallCube = glm::mat4x4(1.0f);
   glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(10.0f, 1.0f, 10.0f));
+  glm::mat4x4 secondCube = glm::translate(smallCube, glm::vec3(0, 0, 1.2f));
+
+  smallCube = glm::translate(smallCube, glm::vec3(0, 0, -1.2f));
   largeCube = glm::translate(largeCube, glm::vec3(0, -2, 0));
+  
   models.push_back(smallCube);
   models.push_back(largeCube);
+  models.push_back(secondCube);
   //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
   //model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
 
@@ -613,13 +618,25 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                shadowPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
+
+    for (uint32_t i = 0; i < models.size(); ++i) {
+      if (i == 1) continue;
+
+      struct Params {
+        glm::mat4x4 model;
+      } params { models[i] };
+
+      cmd_buf.pushConstants(shadowPipeline.getVkPipelineLayout(),
+                            vk::ShaderStageFlagBits::eVertex, 0, sizeof(params), &params);
+      cmd_buf.draw(vertices.size(), 1, 0, 0);
+    }
+
     //std::cout << "render world pass 0" << std::endl;
-    vk::DeviceSize offsets[] = {0};
-    auto vkVertexBuffer = vertexBuffer.get();
+    //vk::DeviceSize offsets[] = {0};
+    //auto vkVertexBuffer = vertexBuffer.get();
     //std::cout << "render world pass 0" << std::endl;
-    cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
+    //cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
     //std::cout << "render world pass 0" << std::endl;
-    cmd_buf.draw(vertices.size(), 1, 0, 0);
     //std::cout << "render world pass 0" << std::endl;
   }
 
@@ -737,7 +754,11 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
-
+/*
+  ImGui::SliderFloat("halfSize", &halfSize, -40.f, 40.f);
+  ImGui::SliderFloat("nearPlane", &nearPlane, -40.f, 40.f);
+  ImGui::SliderFloat("farPlane", &farPlane, -40.f, 40.f);
+*/
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
   ImGui::SliderFloat("X", &light[0], -40.f, 40.f);
