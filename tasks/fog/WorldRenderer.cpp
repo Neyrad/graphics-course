@@ -738,31 +738,6 @@ void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
 
-  ImGui::SliderFloat("Planet speed", &planetSpeed, 0.0f, 20.0f);
-
-  ImGui::SliderFloat("Light Box X and Y limits", &halfSize, 0.0f, 500.0f);
-  ImGui::SliderFloat("nearPlane", &nearPlane, 0.0f, 100.0f);
-  ImGui::SliderFloat("farPlane", &farPlane, 0.0f, 100.0f);
-
-  ImGui::SliderFloat("Surface texture scale", &scale, 0.f, 300.0f);
-
-  float spaceColor[3]{uniformParams.spaceColor.r, uniformParams.spaceColor.g, uniformParams.spaceColor.b};
-  ImGui::ColorEdit3(
-    "Cubemap Space Color", spaceColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
-  uniformParams.spaceColor = {spaceColor[0], spaceColor[1], spaceColor[2]};
-
-  float waveColor[3]{uniformParams.waveColor.r, uniformParams.waveColor.g, uniformParams.waveColor.b};
-  ImGui::ColorEdit3(
-    "Cubemap Wave Color", waveColor, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs);
-  uniformParams.waveColor = {waveColor[0], waveColor[1], waveColor[2]};
-
-  if (ImGui::Button("Default values")) {
-    planetSpeed = 1.0f;
-    scale = 20.0f;
-    uniformParams.spaceColor = {0.0f, 0.0f, 0.0f};
-    uniformParams.waveColor = {0.15f, 0.75f, 0.03f};
-  }
-
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
   ImGui::SliderFloat("X", &light[0], -40.f, 40.f);

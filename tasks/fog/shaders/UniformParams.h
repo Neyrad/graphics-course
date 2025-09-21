@@ -10,10 +10,6 @@ struct UniformParams
   shader_mat4 invViewProj;
   shader_mat4 view;
   shader_vec4 camPos;
-  shader_vec3 spaceColor;
-  float pad1;
-  shader_vec3 waveColor;
-  float pad2;
 };
 
 

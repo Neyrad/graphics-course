@@ -53,9 +53,6 @@ private:
   float deltaTime = 0.0f;
   glm::vec2 mouse;
 
-  float planetSpeed = 1.f;
-  float scale = 20.f;
-
   UniformParams uniformParams
   {
     .lightVP = {},
@@ -63,15 +60,6 @@ private:
     .invViewProj = {},
     .view = {},
     .camPos = {},
-    .spaceColor = {0.0f, 0.0f, 0.0f},
-    .pad1 = {},
-    .waveColor = {0.15f, 0.75f, 0.03f},
-    .pad2 = {},
-  };
-
-  struct Planet {
-    float orbitAngle;
-    float radius;
   };
 
   struct Particle {
@@ -109,14 +97,6 @@ private:
   std::vector<Emitter> emitters;
   std::vector<size_t> emitterRenderOrder;
 
-  std::vector<Planet> planets = {
-    {0.3f, 10.f},
-    {1.1f, -16.f},
-    {2.0f, 12.f},
-    {4.5f, -24.f},
-    {5.2f, -10.f}
-  };
-
   etna::Image image;
   etna::Sampler textureSampler;
   etna::Image texture;
@@ -150,7 +130,7 @@ private:
 
   std::vector<glm::mat4x4> models;
 
-  float halfSize = 48.0f;
+  float halfSize = 5.0f;
   float nearPlane = 0.0f; // ближня межа, можна трохи більше, щоб включити все
   float farPlane  = 32.0f;  // дальня межа
 };
