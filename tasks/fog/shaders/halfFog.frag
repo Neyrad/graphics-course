@@ -8,7 +8,11 @@ layout(binding = 2, set = 0) uniform AppData { UniformParams uparams; };
 layout(binding = 3) uniform sampler2D shadowMap;
 layout(push_constant) uniform Push { 
     vec4 lightPos;
-    float fogDensity; 
+    float minFogDensity;
+    float maxFogDensity;
+    float baseLightLevel;
+    float targetedLightCoeff;
+    float fogSpeed;
 } push;
 
 layout(location = 0) out vec4 outColor;
@@ -38,6 +42,28 @@ vec3 getViewRay(vec2 uv) {
     return normalize(worldFar.xyz - worldNear.xyz);
 }
 
+float computeFogDensity(vec3 pos) {
+    // напрямок "вітру" в площині XZ
+    vec2 windDir = normalize(vec2(1.0, 0.3));
+    float speed = 20; // швидкість руху
+
+    // синусоїдальний рух
+    float wave = sin(dot(pos.xz, windDir) * 0.2 + uparams.time * push.fogSpeed);
+
+    // нормалізуємо в [0,1]
+    wave = wave * 0.5 + 0.5;
+
+    // мінімальна та максимальна щільність для видимого ефекту
+    //float minDensity = 3.00;
+    //float maxDensity = 5.00;
+
+    // щільність, залежна від відстані до камери
+    float viewDist = length(pos - uparams.camPos.xyz);
+    float distanceFactor = smoothstep(0.0, 50.0, viewDist); // слабкий туман близько, сильніший далі
+
+    return mix(push.minFogDensity, push.maxFogDensity, wave) * distanceFactor;
+}
+
 void main() {
     vec2 resolution = vec2(640.0, 360.0);
     vec2 uv = gl_FragCoord.xy / resolution;
@@ -46,7 +72,7 @@ void main() {
     vec3 rayDir = getViewRay(uv);
 
     vec3 fogColor = vec3(0.6, 0.7, 0.8);
-    float fogDensity = push.fogDensity;
+    //float fogDensity = push.fogDensity;
     int numSteps = 64;
     float maxDist = uparams.farPlane - uparams.nearPlane;
     float stepSize = maxDist / float(numSteps);
@@ -60,6 +86,8 @@ void main() {
         float distToLight = length(toLight);
         vec3 lightDir = normalize(toLight);
 
+        float fogDensity = computeFogDensity(samplePos);
+
         float shadowFactor = sampleShadow(samplePos);
 
         // експоненційне згасання від відстані до джерела
@@ -69,7 +97,7 @@ void main() {
         //phase = pow(phase, 0.5); // м’яке падіння для god rays
         //if (phase < 0.9999) phase = 0.0;
 
-        vec3 contrib = transmittance * shadowFactor * fogColor * attenuation * phase * stepSize;
+        vec3 contrib = transmittance * shadowFactor * fogColor * attenuation * (push.baseLightLevel + phase * push.targetedLightCoeff) * stepSize;
         accumLight += contrib;
         accumLight = min(accumLight, vec3(0.4));
 

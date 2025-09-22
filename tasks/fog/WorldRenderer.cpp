@@ -408,6 +408,8 @@ void WorldRenderer::update(FramePacket& FP)
   uniformParams.nearPlane = nearPlane;
   uniformParams.farPlane = farPlane;
 
+  uniformParams.time = time;
+
   std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
   //std::cout << "update success" << std::endl;
 }
@@ -720,8 +722,12 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
       struct Params {
         glm::vec4 lightPos;
-        float fogDensity;
-      } params { glm::vec4(lightPos, 1), fogDensity };
+        float minFogDensity;
+        float maxFogDensity;
+        float baseLightLevel;
+        float targetedLightCoeff;
+        float fogSpeed;
+      } params { glm::vec4(lightPos, 1), minFogDensity, maxFogDensity, baseLightLevel, targetedLightCoeff, fogSpeed };
 
       cmd_buf.pushConstants(fogPipeline.getVkPipelineLayout(),
                             vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -818,7 +824,11 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
-  ImGui::SliderFloat("fogDensity", &fogDensity, 0.f, 5.f);
+  ImGui::SliderFloat("minFogDensity", &minFogDensity, 0.0f, 5.0f);
+  ImGui::SliderFloat("maxFogDensity", &maxFogDensity, 0.0f, 5.0f);
+  ImGui::SliderFloat("baseLightLevel", &baseLightLevel, -0.2f, 0.2f);
+  ImGui::SliderFloat("targetedLightCoeff", &targetedLightCoeff, -10.0f, 10.0f);
+  ImGui::SliderFloat("fogSpeed", &fogSpeed, -10.0f, 10.0f);
 /*
   ImGui::SliderFloat("halfSize", &halfSize, -40.f, 40.f);
   ImGui::SliderFloat("nearPlane", &nearPlane, -40.f, 40.f);
@@ -827,7 +837,7 @@ void WorldRenderer::drawGui()
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
   ImGui::SliderFloat("X", &light[0], -10.f, 10.f);
-  ImGui::SliderFloat("Y", &light[1], 0.f, 10.f);
+  ImGui::SliderFloat("Y", &light[1], -1.0f, 17.0f);
   ImGui::SliderFloat("Z", &light[2], -10.f, 10.f);
   lightPos = {light[0], light[1], light[2]};
 
@@ -847,7 +857,8 @@ void WorldRenderer::drawGui()
             .counterBufferB = {},
             .indirectBuffer = {},
             .indicesBuffer = {},
-            .depthBuffer = {}
+            .depthBuffer = {},
+            .followLight = false
         };
 
         auto& ctx = etna::get_context();
@@ -879,7 +890,13 @@ void WorldRenderer::drawGui()
     for (size_t i = 0; i < emitters.size(); ++i) {
       ImGui::PushID((int)i);
 
-      if (ImGui::TreeNode(("Emitter " + std::to_string(i)).c_str())) {            
+      if (ImGui::TreeNode(("Emitter " + std::to_string(i)).c_str())) {
+
+        ImGui::Checkbox("Follow Light", &emitters[i].followLight);
+        if (emitters[i].followLight) {
+            emitters[i].position = lightPos;
+        }
+
         float pos[3] = {emitters[i].position.x, emitters[i].position.y, emitters[i].position.z};
         ImGui::SliderFloat3("Position", pos, -10.f, 10.f);
         emitters[i].position = {pos[0], pos[1], pos[2]};

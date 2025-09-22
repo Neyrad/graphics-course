@@ -12,6 +12,7 @@ struct UniformParams
   shader_vec4 camPos;
   float nearPlane;
   float farPlane;
+  float time;
 };
 
 #endif // UNIFORM_PARAMS_H_INCLUDED

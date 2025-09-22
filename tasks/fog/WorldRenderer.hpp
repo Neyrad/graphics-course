@@ -62,6 +62,7 @@ private:
     .camPos = {},
     .nearPlane = {},
     .farPlane = {},
+    .time = {}
   };
 
   struct Particle {
@@ -94,6 +95,8 @@ private:
     // sort
     etna::Buffer indicesBuffer;
     etna::Buffer depthBuffer;
+
+    bool followLight;
   };
 
   std::vector<Emitter> emitters;
@@ -138,5 +141,9 @@ private:
 
   etna::Image imageHalfRes;
   etna::GraphicsPipeline fogPipeline{};
-  float fogDensity = 1.0;
+  float minFogDensity = 0.0f;
+  float maxFogDensity = 5.0f;
+  float baseLightLevel = 0.1f;
+  float targetedLightCoeff = 0.0f;
+  float fogSpeed = 3.0f;
 };
