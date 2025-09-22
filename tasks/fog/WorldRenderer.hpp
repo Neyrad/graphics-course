@@ -138,4 +138,5 @@ private:
 
   etna::Image imageHalfRes;
   etna::GraphicsPipeline fogPipeline{};
+  float fogDensity = 1.0;
 };

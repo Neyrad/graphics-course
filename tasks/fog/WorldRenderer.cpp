@@ -21,7 +21,7 @@ const uint32_t maxParticles = 10000;
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
-  lightPos = glm::vec3(40.0f, 40.0f, 40.0f);
+  lightPos = glm::vec3(8.0f, 8.0f, 8.0f);
   std::srand(std::time(nullptr));
 }
 
@@ -720,7 +720,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
       struct Params {
         glm::vec4 lightPos;
-      } params { glm::vec4(lightPos, 1) };
+        float fogDensity;
+      } params { glm::vec4(lightPos, 1), fogDensity };
 
       cmd_buf.pushConstants(fogPipeline.getVkPipelineLayout(),
                             vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -817,6 +818,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
+  ImGui::SliderFloat("fogDensity", &fogDensity, 0.f, 5.f);
 /*
   ImGui::SliderFloat("halfSize", &halfSize, -40.f, 40.f);
   ImGui::SliderFloat("nearPlane", &nearPlane, -40.f, 40.f);
@@ -824,9 +826,9 @@ void WorldRenderer::drawGui()
 */
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
-  ImGui::SliderFloat("X", &light[0], -40.f, 1000.f);
-  ImGui::SliderFloat("Y", &light[1], 0.f, 1000.f);
-  ImGui::SliderFloat("Z", &light[2], -40.f, 1000.f);
+  ImGui::SliderFloat("X", &light[0], -10.f, 10.f);
+  ImGui::SliderFloat("Y", &light[1], 0.f, 10.f);
+  ImGui::SliderFloat("Z", &light[2], -10.f, 10.f);
   lightPos = {light[0], light[1], light[2]};
 
   if (ImGui::CollapsingHeader("Emitters")) {

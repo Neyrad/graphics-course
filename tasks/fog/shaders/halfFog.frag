@@ -6,7 +6,10 @@
 
 layout(binding = 2, set = 0) uniform AppData { UniformParams uparams; };
 layout(binding = 3) uniform sampler2D shadowMap;
-layout(push_constant) uniform Push { vec4 lightPos; } push;
+layout(push_constant) uniform Push { 
+    vec4 lightPos;
+    float fogDensity; 
+} push;
 
 layout(location = 0) out vec4 outColor;
 
@@ -43,7 +46,7 @@ void main() {
     vec3 rayDir = getViewRay(uv);
 
     vec3 fogColor = vec3(0.6, 0.7, 0.8);
-    float fogDensity = 0.01;
+    float fogDensity = push.fogDensity;
     int numSteps = 64;
     float maxDist = uparams.farPlane - uparams.nearPlane;
     float stepSize = maxDist / float(numSteps);
