@@ -16,7 +16,6 @@ target_add_shaders(fog
   shaders/halfFog.frag
   shaders/shadow.vert
   shaders/shadow.frag
-  shaders/texture.frag
   shaders/particles.vert
   shaders/particles.frag
   shaders/simulate.comp

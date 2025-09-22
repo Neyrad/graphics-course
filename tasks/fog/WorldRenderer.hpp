@@ -117,7 +117,6 @@ private:
 
   glm::uvec2 resolution;
 
-  // shadow map
   etna::Image shadowMap;
   etna::Sampler shadowSampler;
   etna::GraphicsPipeline shadowPipeline{};
@@ -136,8 +135,8 @@ private:
   std::vector<glm::mat4x4> models;
 
   float halfSize = 5.0f;
-  float nearPlane = 0.0f; // ближня межа, можна трохи більше, щоб включити все
-  float farPlane  = 32.0f;  // дальня межа
+  float nearPlane = 0.0f;
+  float farPlane  = 32.0f;
 
   etna::Image imageHalfRes;
   etna::GraphicsPipeline fogPipeline{};

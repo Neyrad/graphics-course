@@ -45,18 +45,12 @@ vec3 getViewRay(vec2 uv) {
 }
 
 float computeFogDensity(vec3 pos) {
-    // напрямок "вітру" в площині XZ
     vec2 windDir = normalize(vec2(1.0, 0.3));
-
-    // синусоїдальний рух
     float wave = sin(dot(pos.xz, windDir) * 0.2 + uparams.time * push.fogSpeed);
-
-    // нормалізуємо в [0,1]
     wave = wave * 0.5 + 0.5;
 
-    // щільність, залежна від відстані до камери
     float viewDist = length(pos - uparams.camPos.xyz);
-    float distanceFactor = smoothstep(0.0, 50.0, viewDist); // слабкий туман близько, сильніший далі
+    float distanceFactor = smoothstep(0.0, 50.0, viewDist);
 
     return mix(push.minFogDensity, push.maxFogDensity, wave) * distanceFactor;
 }
@@ -74,7 +68,6 @@ void main() {
     vec3 camPos = uparams.camPos.xyz;
     vec3 rayDir = getViewRay(uv);
 
-    //int numSteps = 64;
     float maxDist = uparams.farPlane - uparams.nearPlane;
     float stepSize = maxDist / float(push.numSteps);
 
@@ -88,20 +81,14 @@ void main() {
         vec3 lightDir = normalize(toLight);
 
         float fogDensity = computeFogDensity(samplePos);
-
         float shadowFactor = sampleShadow(samplePos);
-
-        // експоненційне згасання від відстані до джерела
         float attenuation = exp(-0.05 * distToLight);
 
         vec3 contrib = transmittance * shadowFactor * push.fogColor.xyz * attenuation * push.baseLightLevel * stepSize;
         accumLight += contrib;
-        accumLight = min(accumLight, vec3(0.4));
 
-        // поглинання туманом
         transmittance *= exp(-fogDensity * stepSize);
     }
 
-    // god rays без перетворення в біле
     outColor = vec4(accumLight, 1.0);
 }

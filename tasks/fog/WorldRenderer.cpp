@@ -27,8 +27,6 @@ WorldRenderer::WorldRenderer()
 
 void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 {
-  ////std::cout << "alloc res" << std::endl;
-
   resolution = swapchain_resolution;
 
   auto& ctx = etna::get_context();
@@ -87,7 +85,7 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   constants.map();
 
   shadowMap = ctx.createImage(etna::Image::CreateInfo{
-      .extent = vk::Extent3D{1024, 1024, 1}, // розмір карти тіней (1024x1024 ок для початку)
+      .extent = vk::Extent3D{1024, 1024, 1},
       .name = "shadowMap",
       .format = vk::Format::eD32Sfloat,
       .imageUsage = vk::ImageUsageFlagBits::eDepthStencilAttachment | 
@@ -107,10 +105,8 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
     .imageUsage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
   });
 
-
   vertices.clear();
 
-  // -Z (задня)
   vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(0,0,-1,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1,-1,-1,1), glm::vec4(0,0,-1,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1, 1,-1,1), glm::vec4(0,0,-1,0)});
@@ -118,7 +114,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertices.emplace_back(Vertex{glm::vec4( 1, 1,-1,1), glm::vec4(0,0,-1,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(0,0,-1,0)});
 
-  // +Z (передня)
   vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(0,0,1,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1,-1, 1,1), glm::vec4(0,0,1,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,0,1,0)});
@@ -126,7 +121,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,0,1,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(0,0,1,0)});
 
-  // -X (ліва)
   vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(-1,0,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(-1,0,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(-1,0,0,0)});
@@ -134,7 +128,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(-1,0,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(-1,0,0,0)});
 
-  // +X (права)
   vertices.emplace_back(Vertex{glm::vec4(1,-1,-1,1), glm::vec4(1,0,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(1,-1, 1,1), glm::vec4(1,0,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(1, 1, 1,1), glm::vec4(1,0,0,0)});
@@ -142,7 +135,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertices.emplace_back(Vertex{glm::vec4(1, 1, 1,1), glm::vec4(1,0,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(1, 1,-1,1), glm::vec4(1,0,0,0)});
 
-  // -Y (низ)
   vertices.emplace_back(Vertex{glm::vec4(-1,-1,-1,1), glm::vec4(0,-1,0,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1,-1,-1,1), glm::vec4(0,-1,0,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1,-1, 1,1), glm::vec4(0,-1,0,0)});
@@ -150,7 +142,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertices.emplace_back(Vertex{glm::vec4( 1,-1, 1,1), glm::vec4(0,-1,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1,-1, 1,1), glm::vec4(0,-1,0,0)});
 
-  // +Y (верх)
   vertices.emplace_back(Vertex{glm::vec4(-1, 1,-1,1), glm::vec4(0,1,0,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1, 1,-1,1), glm::vec4(0,1,0,0)});
   vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,1,0,0)});
@@ -158,8 +149,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertices.emplace_back(Vertex{glm::vec4( 1, 1, 1,1), glm::vec4(0,1,0,0)});
   vertices.emplace_back(Vertex{glm::vec4(-1, 1, 1,1), glm::vec4(0,1,0,0)});
 
-
-  // Створюємо буфер вершин
   vertexBuffer = ctx.createBuffer(etna::Buffer::CreateInfo{
       .size = sizeof(Vertex) * vertices.size(),
       .bufferUsage = vk::BufferUsageFlagBits::eVertexBuffer,
@@ -167,7 +156,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
       .name = "vertexBuffer"
   });
 
-  // Копіюємо дані
   vertexBuffer.map();
   std::memcpy(vertexBuffer.data(), vertices.data(), sizeof(Vertex) * vertices.size());
 
@@ -175,37 +163,29 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   floor = glm::translate(floor, glm::vec3(0, -2, 0));
   models.push_back(floor);
 
-    //glm::mat4x4 wallBase = glm::scale(glm::mat4x4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
-  // підлога
-//  glm::mat4x4 floorCube = glm::translate(largeCube, glm::vec3(0, -2.0f, 0));
-  // стеля
-
   glm::mat4x4 ceilingCube = glm::translate(glm::mat4x4(1.0f), glm::vec3(0, 18.0f, 0));
   ceilingCube = glm::scale(ceilingCube, glm::vec3(10.0f, 1.0f, 10.0f));
 
-  // стіни
-  glm::mat4x4 wallX = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(1,0,0)); // повертаємо по X
-  glm::mat4x4 wallZ = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(0,0,1)); // повертаємо по Z
+  glm::mat4x4 wallX = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(1,0,0));
+  glm::mat4x4 wallZ = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(0,0,1));
 
-  glm::mat4x4 wallLeft   = glm::translate(wallZ, glm::vec3(9.0f, 11.0f, 0.0f));  // ліва
-  glm::mat4x4 wallRight  = glm::translate(wallZ, glm::vec3(9.0f, -11.0f, 0.0f));   // права
-  glm::mat4x4 wallFront  = glm::translate(wallX, glm::vec3(0.0f, 11.0f, -9.0f));  // передня
-  glm::mat4x4 wallBack   = glm::translate(wallX, glm::vec3(0.0f, -11.0f, -9.0f));   // задня
+  glm::mat4x4 wallLeft   = glm::translate(wallZ, glm::vec3(9.0f, 11.0f, 0.0f));
+  glm::mat4x4 wallRight  = glm::translate(wallZ, glm::vec3(9.0f, -11.0f, 0.0f));
+  glm::mat4x4 wallFront  = glm::translate(wallX, glm::vec3(0.0f, 11.0f, -9.0f));
+  glm::mat4x4 wallBack   = glm::translate(wallX, glm::vec3(0.0f, -11.0f, -9.0f));
 
   wallLeft = glm::scale(wallLeft, glm::vec3(10.0f, 1.0f, 10.0f));
   wallRight = glm::scale(wallRight, glm::vec3(10.0f, 1.0f, 10.0f));
   wallFront = glm::scale(wallFront, glm::vec3(10.0f, 1.0f, 10.0f));
   wallBack = glm::scale(wallBack, glm::vec3(10.0f, 1.0f, 10.0f)); 
 
-  // додамо всі моделі у вектор
-  //models.push_back(floorCube);
   models.push_back(ceilingCube);
   models.push_back(wallLeft);
   models.push_back(wallRight);
   models.push_back(wallFront);
   models.push_back(wallBack);
 
-  glm::mat4x4 back = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(1,0,0)); // повертаємо по X
+  glm::mat4x4 back = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(1,0,0));
 
   glm::mat4x4 seat = glm::translate(glm::mat4x4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f));
   back = glm::translate(back, glm::vec3(0.0f, -0.5f, -2.0f));
@@ -240,10 +220,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   models.push_back(leg3);
   models.push_back(leg4);
 
-
-  //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
-  //model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
-
   imageHalfRes = ctx.createImage(etna::Image::CreateInfo{
     .extent = vk::Extent3D{resolution.x / 2, resolution.y / 2, 1},
     .name = "half_res_fog",
@@ -253,8 +229,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 
 void WorldRenderer::loadShaders()
 {
-  ////std::cout << "load shaders" << std::endl;
-
   etna::create_program(
     "texture",
     {FOG_SHADERS_ROOT "texture.frag.spv",
@@ -298,22 +272,10 @@ void WorldRenderer::loadShaders()
     "fog_half_res",
     {FOG_SHADERS_ROOT "halfFog.frag.spv",
     FOG_SHADERS_ROOT "halfFog.vert.spv"});
-
-    ////std::cout << "load shaders SUCCESS" << std::endl;
 }
 
 void WorldRenderer::setupPipelines(vk::Format swapchain_format)
 {
-  //std::cout << "setup pipelines" << std::endl;
-/*
-  texturePipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
-    "texture",
-    etna::GraphicsPipeline::CreateInfo{
-      .fragmentShaderOutput = {
-        .colorAttachmentFormats = {vk::Format::eB8G8R8A8Srgb},
-      }});
-*/
-        ////std::cout << "setup pipelines" << std::endl;
   graphicsPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "fog",
     etna::GraphicsPipeline::CreateInfo{
@@ -324,7 +286,7 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       }
     }
   );
-  ////std::cout << "setup pipelines" << std::endl;
+
   emittersPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline("emitters", {
       .blendingConfig = {
           .attachments={
@@ -350,27 +312,27 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
         .depthAttachmentFormat = vk::Format::eD32Sfloat,
       }
   });
-  ////std::cout << "setup pipelines" << std::endl;
+
   simulatePipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "simulate",
       etna::ComputePipeline::CreateInfo{}
   );
-  ////std::cout << "setup pipelines" << std::endl;
+
   spawnPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "spawn",
       etna::ComputePipeline::CreateInfo{}
   );
-  ////std::cout << "setup pipelines" << std::endl;
+
   writeIndirectPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "writeIndirect",
       etna::ComputePipeline::CreateInfo{}
   );
-  ////std::cout << "setup pipelines" << std::endl;
+
   sortPipeline = etna::get_context().getPipelineManager().createComputePipeline(
       "sort",
       etna::ComputePipeline::CreateInfo{}
   );
-  ////std::cout << "setup pipelines" << std::endl;
+
   shadowPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
       "shadow",
       etna::GraphicsPipeline::CreateInfo{
@@ -380,7 +342,6 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
       }
   );
 
-  //std::cout << "setup pipelines SUCCESS" << std::endl;
   fogPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
     "fog_half_res",
     etna::GraphicsPipeline::CreateInfo{
@@ -395,7 +356,6 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
 
 void WorldRenderer::update(FramePacket& FP)
 {
-  //std::cout << "update" << std::endl;
   // calc camera matrix
   {
     const float aspect = float(resolution.x) / float(resolution.y);
@@ -413,23 +373,18 @@ void WorldRenderer::update(FramePacket& FP)
   uniformParams.view = view;
   uniformParams.camPos = glm::vec4(cameraPos, 1);
 
-  // світловий view-proj
   glm::mat4x4 lightView = glm::lookAt(
-      glm::vec3(lightPos),  // позиція світла
-      glm::vec3(0.0f),      // дивиться в центр
-      glm::vec3(0, 1, 0)    // вгору
+      glm::vec3(lightPos),
+      glm::vec3(0.0f),
+      glm::vec3(0, 1, 0)
   );
-
-  //float halfSize = 10.0f; // половина розміру куба
-  //float nearPlane = 1.0f; // ближня межа, можна трохи більше, щоб включити все
-  //float farPlane  = 500.0f;  // дальня межа
 
   farPlane = abs(lightPos.x) + abs(lightPos.y) + abs(lightPos.z);
 
   glm::mat4x4 lightProj = glm::ortho(
-      -halfSize, halfSize,   // left, right
-      -halfSize, halfSize,   // bottom, top
-      nearPlane, farPlane    // near, far
+      -halfSize, halfSize,
+      -halfSize, halfSize,
+      nearPlane, farPlane
   );
 
   uniformParams.lightVP = lightProj * lightView;
@@ -439,14 +394,11 @@ void WorldRenderer::update(FramePacket& FP)
   uniformParams.time = time;
 
   std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
-  //std::cout << "update success" << std::endl;
 }
 
 void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                 vk::Image target_image, vk::ImageView target_image_view)
 {
-  //std::cout << "render world" << std::endl;
-
   ///
   ///
   /// COMPUTE PART
@@ -662,8 +614,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
   ///
   ///
 
-  //std::cout << "render world starting gra[hics part]" << std::endl;
-
   // --- PASS 0: shadow map ---
   {
     etna::set_state(cmd_buf, shadowMap.get(),
@@ -673,16 +623,16 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       vk::ImageAspectFlagBits::eDepth);
 
     etna::flush_barriers(cmd_buf);
-//std::cout << "render world pass 0" << std::endl;
+
     etna::RenderTargetState shadowRT(
       cmd_buf,
       {{0,0}, {1024, 1024}},
       {},
       { .image = shadowMap.get(), .view = shadowMap.getView({}) }
     );
-//std::cout << "render world pass 0" << std::endl;
+
     auto shadowInfo = etna::get_shader_program("shadow");
-    //std::cout << "render world pass 0" << std::endl;
+
     auto set = etna::create_descriptor_set(
       shadowInfo.getDescriptorLayoutId(0),
       cmd_buf,
@@ -693,18 +643,17 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         // binding 2 -> vertex buffer
         etna::Binding{ 2, vertexBuffer.genBinding() },
       });
-//std::cout << "render world pass 0" << std::endl;
+
     vk::DescriptorSet vkSet = set.getVkSet();
-    //std::cout << "render world pass 0" << std::endl;
+
     cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, shadowPipeline.getVkPipeline());
-    //std::cout << "render world pass 0" << std::endl;
+
     cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                shadowPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
 
     for (uint32_t i = 0; i < models.size(); ++i) {
       if (i < 6) continue;
-      //if (i == 0) break;
 
       struct Params {
         glm::mat4x4 model;
@@ -795,13 +744,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       fogInfo.getDescriptorLayoutId(0),
       cmd_buf,
       {
-        // binding 0 -> what has been rendered in PASS 1
-        //etna::Binding{ 0, image.genBinding(textureSampler.get(),
-        //                                   vk::ImageLayout::eShaderReadOnlyOptimal) },
-        // binding 1 -> PNG texture
-        //etna::Binding{ 1, texture.genBinding(textureSampler.get(),
-        //                                     vk::ImageLayout::eShaderReadOnlyOptimal) },
-
         // binding 2 -> uniform buffer
         etna::Binding{ 2, constants.genBinding() },
 
@@ -821,8 +763,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                                graphicsPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
     for (uint32_t i = 0; i < models.size(); ++i) {
-      //if (i == 1) break;
-
       struct Params {
         glm::mat4x4 model;
         glm::vec4 lightPos;
@@ -858,8 +798,6 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
     emitter.useAasInput = !emitter.useAasInput;
   }
-
-  //std::cout << "render world success" << std::endl;
 }
 
 void WorldRenderer::drawGui()
@@ -870,17 +808,13 @@ void WorldRenderer::drawGui()
   ImGui::SliderFloat("minFogDensity", &minFogDensity, 0.0f, 5.0f);
   ImGui::SliderFloat("maxFogDensity", &maxFogDensity, 0.0f, 5.0f);
   ImGui::SliderFloat("baseLightLevel", &baseLightLevel, -0.2f, 0.2f);
-  //ImGui::SliderFloat("targetedLightCoeff", &targetedLightCoeff, -10.0f, 10.0f);
+
   ImGui::SliderFloat("fogSpeed", &fogSpeed, -10.0f, 10.0f);
 
   float color[3] = {fogColor.r, fogColor.g, fogColor.b};
   ImGui::ColorEdit3("Fog Color", color);
   fogColor = {color[0], color[1], color[2]};
-/*
-  ImGui::SliderFloat("halfSize", &halfSize, -40.f, 40.f);
-  ImGui::SliderFloat("nearPlane", &nearPlane, -40.f, 40.f);
-  ImGui::SliderFloat("farPlane", &farPlane, -40.f, 40.f);
-*/
+
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
   ImGui::SliderFloat("X", &light[0], -9.0f, 9.0f);
