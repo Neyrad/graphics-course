@@ -21,7 +21,7 @@ const uint32_t maxParticles = 10000;
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
-  lightPos = glm::vec3(12.0f, 12.0f, 0.0f);
+  lightPos = glm::vec3(40.0f, 40.0f, 40.0f);
   std::srand(std::time(nullptr));
 }
 
@@ -181,6 +181,38 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   models.push_back(smallCube);
   models.push_back(largeCube);
   models.push_back(secondCube);
+
+
+  //glm::mat4x4 wallBase = glm::scale(glm::mat4x4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
+  // підлога
+//  glm::mat4x4 floorCube = glm::translate(largeCube, glm::vec3(0, -2.0f, 0));
+  // стеля
+
+  glm::mat4x4 ceilingCube = glm::translate(glm::mat4x4(1.0f), glm::vec3(0, 18.0f, 0));
+  ceilingCube = glm::scale(ceilingCube, glm::vec3(10.0f, 1.0f, 10.0f));
+
+  // стіни
+  glm::mat4x4 wallX = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(1,0,0)); // повертаємо по X
+  glm::mat4x4 wallZ = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(0,0,1)); // повертаємо по Z
+
+  glm::mat4x4 wallLeft   = glm::translate(wallZ, glm::vec3(9.0f, 11.0f, 0.0f));  // ліва
+  glm::mat4x4 wallRight  = glm::translate(wallZ, glm::vec3(9.0f, -11.0f, 0.0f));   // права
+  glm::mat4x4 wallFront  = glm::translate(wallX, glm::vec3(0.0f, 11.0f, -9.0f));  // передня
+  glm::mat4x4 wallBack   = glm::translate(wallX, glm::vec3(0.0f, -11.0f, -9.0f));   // задня
+
+  wallLeft = glm::scale(wallLeft, glm::vec3(10.0f, 1.0f, 10.0f));
+  wallRight = glm::scale(wallRight, glm::vec3(10.0f, 1.0f, 10.0f));
+  wallFront = glm::scale(wallFront, glm::vec3(10.0f, 1.0f, 10.0f));
+  wallBack = glm::scale(wallBack, glm::vec3(10.0f, 1.0f, 10.0f)); 
+
+  // додамо всі моделі у вектор
+  //models.push_back(floorCube);
+  models.push_back(ceilingCube);
+  models.push_back(wallLeft);
+  models.push_back(wallRight);
+  models.push_back(wallFront);
+  models.push_back(wallBack);
+
   //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
   //model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
 
@@ -642,6 +674,7 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
     for (uint32_t i = 0; i < models.size(); ++i) {
       if (i == 1) continue;
+      if (i == 3) break;
 
       struct Params {
         glm::mat4x4 model;
@@ -791,9 +824,9 @@ void WorldRenderer::drawGui()
 */
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
-  ImGui::SliderFloat("X", &light[0], -40.f, 40.f);
-  ImGui::SliderFloat("Y", &light[1], 0.f, 40.f);
-  ImGui::SliderFloat("Z", &light[2], -40.f, 40.f);
+  ImGui::SliderFloat("X", &light[0], -40.f, 1000.f);
+  ImGui::SliderFloat("Y", &light[1], 0.f, 1000.f);
+  ImGui::SliderFloat("Z", &light[2], -40.f, 1000.f);
   lightPos = {light[0], light[1], light[2]};
 
   if (ImGui::CollapsingHeader("Emitters")) {

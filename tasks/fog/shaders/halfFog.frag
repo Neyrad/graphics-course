@@ -36,7 +36,7 @@ vec3 getViewRay(vec2 uv) {
 }
 
 void main() {
-    vec2 resolution = vec2(1280.0, 720.0);
+    vec2 resolution = vec2(640.0, 360.0);
     vec2 uv = gl_FragCoord.xy / resolution;
 
     vec3 camPos = uparams.camPos.xyz;
@@ -64,7 +64,7 @@ void main() {
 
         float phase = max(dot(rayDir, lightDir), 0.0);
         //phase = pow(phase, 0.5); // м’яке падіння для god rays
-        if (phase < 0.95) phase = 0.0;
+        //if (phase < 0.9999) phase = 0.0;
 
         vec3 contrib = transmittance * shadowFactor * fogColor * attenuation * phase * stepSize;
         accumLight += contrib;
