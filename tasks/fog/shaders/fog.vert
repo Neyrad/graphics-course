@@ -21,8 +21,6 @@ layout(std430, binding = 4) readonly buffer Vertices {
 layout(location = 0) out vec4 fragPos;
 layout(location = 1) out vec4 normal;
 layout(location = 2) out vec4 lightSpacePos;
-layout(location = 3) out vec4 coolColor;
-layout(location = 4) out vec4 skyboxColor;
 
 layout(push_constant) uniform Push {
     mat4 model;
@@ -39,20 +37,4 @@ void main() {
     lightSpacePos = uparams.lightVP * worldPos;
 
     gl_Position = uparams.viewProj * vec4(worldPos.xyz, 1.0);
-    
-    skyboxColor = vec4(0.0, 1.0, 1.0, 1.0);
-    if (gl_VertexIndex < 6) {
-      coolColor = vec4(1.0, 0.0, 0.0, 1.0);
-    } else if (gl_VertexIndex >= 6 && gl_VertexIndex < 12) {
-      coolColor = vec4(1.0, 0.0, 0.0, 1.0);
-    } else if (gl_VertexIndex >= 12 && gl_VertexIndex < 18) {
-      coolColor = vec4(0.0, 0.0, 1.0, 1.0);
-    } else if (gl_VertexIndex >= 18 && gl_VertexIndex < 24) {
-      coolColor = vec4(0.0, 0.0, 1.0, 1.0);
-    } else if (gl_VertexIndex >= 24 && gl_VertexIndex < 30) {
-      skyboxColor = vec4(0.0, 1.0, 0.0, 1.0);
-      coolColor = vec4(1.0, 1.0, 0.0, 1.0);
-    } else if (gl_VertexIndex >= 30 && gl_VertexIndex < 36) {
-      coolColor = vec4(1.0, 1.0, 0.0, 1.0);
-    }
 }

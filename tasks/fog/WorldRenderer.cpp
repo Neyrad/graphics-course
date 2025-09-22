@@ -21,7 +21,7 @@ const uint32_t maxParticles = 10000;
 WorldRenderer::WorldRenderer()
   : sceneMgr{std::make_unique<SceneManager>()}
 {
-  lightPos = glm::vec3(8.0f, 8.0f, 8.0f);
+  lightPos = glm::vec3(3.0f, 11.0f, 9.0f);
   std::srand(std::time(nullptr));
 }
 
@@ -171,19 +171,11 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   vertexBuffer.map();
   std::memcpy(vertexBuffer.data(), vertices.data(), sizeof(Vertex) * vertices.size());
 
-  glm::mat4x4 smallCube = glm::mat4x4(1.0f);
-  glm::mat4x4 largeCube = glm::scale(smallCube, glm::vec3(10.0f, 1.0f, 10.0f));
-  glm::mat4x4 secondCube = glm::translate(smallCube, glm::vec3(0, 0, 1.01f));
+  glm::mat4x4 floor = glm::scale(glm::mat4x4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
+  floor = glm::translate(floor, glm::vec3(0, -2, 0));
+  models.push_back(floor);
 
-  smallCube = glm::translate(smallCube, glm::vec3(0, 0, -1.01f));
-  largeCube = glm::translate(largeCube, glm::vec3(0, -2, 0));
-  
-  models.push_back(smallCube);
-  models.push_back(largeCube);
-  models.push_back(secondCube);
-
-
-  //glm::mat4x4 wallBase = glm::scale(glm::mat4x4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
+    //glm::mat4x4 wallBase = glm::scale(glm::mat4x4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
   // підлога
 //  glm::mat4x4 floorCube = glm::translate(largeCube, glm::vec3(0, -2.0f, 0));
   // стеля
@@ -212,6 +204,42 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   models.push_back(wallRight);
   models.push_back(wallFront);
   models.push_back(wallBack);
+
+  glm::mat4x4 back = glm::rotate(glm::mat4x4(1.0f), glm::radians(90.0f), glm::vec3(1,0,0)); // повертаємо по X
+
+  glm::mat4x4 seat = glm::translate(glm::mat4x4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f));
+  back = glm::translate(back, glm::vec3(0.0f, -0.5f, -2.0f));
+
+  seat = glm::scale(seat, glm::vec3(1.0f, 0.1f, 1.0f));
+  back = glm::scale(back, glm::vec3(1.0f, 0.1f, 0.5f));
+
+  models.push_back(seat);
+  models.push_back(back);
+
+  glm::mat4x4 back1 = glm::translate(glm::mat4x4(1.0f), glm::vec3(0.7f, 1.0f, -0.7f));
+  glm::mat4x4 back2 = glm::translate(glm::mat4x4(1.0f), glm::vec3(-0.7f, 1.0f, -0.7f));
+
+  back1 = glm::scale(back1, glm::vec3(0.15f, 1.2f, 0.15f));
+  back2 = glm::scale(back2, glm::vec3(0.15f, 1.2f, 0.15f));
+
+  models.push_back(back1);
+  models.push_back(back2);
+
+  glm::mat4x4 leg1 = glm::translate(glm::mat4x4(1.0f), glm::vec3(0.7f, -0.3f, 0.7f));
+  glm::mat4x4 leg2 = glm::translate(glm::mat4x4(1.0f), glm::vec3(-0.7f, -0.3f, 0.7f));
+  glm::mat4x4 leg3 = glm::translate(glm::mat4x4(1.0f), glm::vec3(0.7f, -0.3f, -0.7f));
+  glm::mat4x4 leg4 = glm::translate(glm::mat4x4(1.0f), glm::vec3(-0.7f, -0.3f, -0.7f));
+
+  leg1 = glm::scale(leg1, glm::vec3(0.15f, 0.7f, 0.15f));
+  leg2 = glm::scale(leg2, glm::vec3(0.15f, 0.7f, 0.15f));
+  leg3 = glm::scale(leg3, glm::vec3(0.15f, 0.7f, 0.15f));
+  leg4 = glm::scale(leg4, glm::vec3(0.15f, 0.7f, 0.15f));
+
+  models.push_back(leg1);
+  models.push_back(leg2);
+  models.push_back(leg3);
+  models.push_back(leg4);
+
 
   //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
   //model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
@@ -675,8 +703,8 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
 
     for (uint32_t i = 0; i < models.size(); ++i) {
-      if (i == 1) continue;
-      if (i == 3) break;
+      if (i < 6) continue;
+      //if (i == 0) break;
 
       struct Params {
         glm::mat4x4 model;
@@ -855,9 +883,9 @@ void WorldRenderer::drawGui()
 */
   float light[3]{lightPos.x, lightPos.y, lightPos.z};
   ImGui::Text("Light Position");
-  ImGui::SliderFloat("X", &light[0], -10.f, 10.f);
-  ImGui::SliderFloat("Y", &light[1], -1.0f, 17.0f);
-  ImGui::SliderFloat("Z", &light[2], -10.f, 10.f);
+  ImGui::SliderFloat("X", &light[0], -9.0f, 9.0f);
+  ImGui::SliderFloat("Y", &light[1], 11.0f, 16.0f);
+  ImGui::SliderFloat("Z", &light[2], -9.0f, 9.0f);
   lightPos = {light[0], light[1], light[2]};
 
   ImGui::Text("Quality");
@@ -953,10 +981,6 @@ void WorldRenderer::drawGui()
         float color[3] = {emitters[i].particleColor.r, emitters[i].particleColor.g, emitters[i].particleColor.b};
         ImGui::ColorEdit3("Particle Color", color);
         emitters[i].particleColor = {color[0], color[1], color[2]};
-
-        if (ImGui::Button("Teleport to lightPos")) {
-            emitters[i].position = {lightPos.x, lightPos.y, lightPos.z};
-        }
 
         if (ImGui::Button("Remove Emitter")) {
             emitters.erase(emitters.begin() + i);

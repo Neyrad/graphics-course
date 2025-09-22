@@ -143,7 +143,7 @@ private:
   etna::GraphicsPipeline fogPipeline{};
   float minFogDensity = 0.0f;
   float maxFogDensity = 5.0f;
-  float baseLightLevel = 0.1f;
+  float baseLightLevel = 0.025f;
   float fogSpeed = 3.0f;
   glm::vec3 fogColor = glm::vec3(0.6f, 0.7f, 0.8f);
   bool enableFog = true;
