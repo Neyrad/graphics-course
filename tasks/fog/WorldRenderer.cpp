@@ -728,7 +728,19 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
         float baseLightLevel;
         float fogSpeed;
         uint32_t enableFog;
-      } params { glm::vec4(lightPos, 1), glm::vec4(fogColor, 1.0f), minFogDensity, maxFogDensity, baseLightLevel, fogSpeed, (enableFog ? 1u : 0u) };
+        uint32_t numSteps;
+      };
+
+      Params params {
+        glm::vec4(lightPos, 1.0f),
+        glm::vec4(fogColor, 1.0f),
+        minFogDensity,
+        maxFogDensity,
+        baseLightLevel,
+        fogSpeed,
+        enableFog ? 1u : 0u,
+        numSteps
+      };
 
       cmd_buf.pushConstants(fogPipeline.getVkPipelineLayout(),
                             vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -847,6 +859,31 @@ void WorldRenderer::drawGui()
   ImGui::SliderFloat("Y", &light[1], -1.0f, 17.0f);
   ImGui::SliderFloat("Z", &light[2], -10.f, 10.f);
   lightPos = {light[0], light[1], light[2]};
+
+  ImGui::Text("Quality");
+  const char* items[] = { "8", "16", "32", "64", "128", "256", "512", "1024" };
+
+  if (ImGui::BeginCombo("Num Steps", items[pickStepsQuality])) {
+      for (uint32_t n = 0; n < IM_ARRAYSIZE(items); n++) {
+          bool isSelected = (pickStepsQuality == n);
+          if (ImGui::Selectable(items[n], isSelected))
+              pickStepsQuality = n;
+          if (isSelected)
+              ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+  }
+
+  switch (pickStepsQuality) {
+    case 0: numSteps = 8; break;
+    case 1: numSteps = 16; break;
+    case 2: numSteps = 32; break;
+    case 3: numSteps = 64; break;
+    case 4: numSteps = 128; break;
+    case 5: numSteps = 256; break;
+    case 6: numSteps = 512; break;
+    case 7: numSteps = 1024; break;
+  }
 
   if (ImGui::CollapsingHeader("Emitters")) {
     if (ImGui::Button("Add Emitter")) {

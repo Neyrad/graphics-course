@@ -147,4 +147,7 @@ private:
   float fogSpeed = 3.0f;
   glm::vec3 fogColor = glm::vec3(0.6f, 0.7f, 0.8f);
   bool enableFog = true;
+
+  uint32_t pickStepsQuality = 3;
+  uint32_t numSteps = 64;
 };

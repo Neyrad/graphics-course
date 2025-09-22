@@ -14,6 +14,7 @@ layout(push_constant) uniform Push {
     float baseLightLevel;
     float fogSpeed;
     uint enableFog;
+    uint numSteps;
 } push;
 
 layout(location = 0) out vec4 outColor;
@@ -46,17 +47,12 @@ vec3 getViewRay(vec2 uv) {
 float computeFogDensity(vec3 pos) {
     // напрямок "вітру" в площині XZ
     vec2 windDir = normalize(vec2(1.0, 0.3));
-    float speed = 20; // швидкість руху
 
     // синусоїдальний рух
     float wave = sin(dot(pos.xz, windDir) * 0.2 + uparams.time * push.fogSpeed);
 
     // нормалізуємо в [0,1]
     wave = wave * 0.5 + 0.5;
-
-    // мінімальна та максимальна щільність для видимого ефекту
-    //float minDensity = 3.00;
-    //float maxDensity = 5.00;
 
     // щільність, залежна від відстані до камери
     float viewDist = length(pos - uparams.camPos.xyz);
@@ -66,6 +62,7 @@ float computeFogDensity(vec3 pos) {
 }
 
 void main() {
+
     if (push.enableFog == 0u) {
         outColor = vec4(0.0);
         return;
@@ -77,16 +74,14 @@ void main() {
     vec3 camPos = uparams.camPos.xyz;
     vec3 rayDir = getViewRay(uv);
 
-    //vec3 fogColor = vec3(0.6, 0.7, 0.8);
-    //float fogDensity = push.fogDensity;
-    int numSteps = 64;
+    //int numSteps = 64;
     float maxDist = uparams.farPlane - uparams.nearPlane;
-    float stepSize = maxDist / float(numSteps);
+    float stepSize = maxDist / float(push.numSteps);
 
     vec3 accumLight = vec3(0.0);
     float transmittance = 1.0;
 
-    for (int i = 0; i < numSteps; i++) {
+    for (uint i = 0; i < push.numSteps; i++) {
         vec3 samplePos = camPos + rayDir * (float(i) * stepSize);
         vec3 toLight = push.lightPos.xyz - samplePos;
         float distToLight = length(toLight);
@@ -98,10 +93,6 @@ void main() {
 
         // експоненційне згасання від відстані до джерела
         float attenuation = exp(-0.05 * distToLight);
-
-        //float phase = max(dot(rayDir, lightDir), 0.0);
-        //phase = pow(phase, 0.5); // м’яке падіння для god rays
-        //if (phase < 0.9999) phase = 0.0;
 
         vec3 contrib = transmittance * shadowFactor * push.fogColor.xyz * attenuation * push.baseLightLevel * stepSize;
         accumLight += contrib;
