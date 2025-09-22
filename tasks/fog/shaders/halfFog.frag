@@ -8,11 +8,12 @@ layout(binding = 2, set = 0) uniform AppData { UniformParams uparams; };
 layout(binding = 3) uniform sampler2D shadowMap;
 layout(push_constant) uniform Push { 
     vec4 lightPos;
+    vec4 fogColor;
     float minFogDensity;
     float maxFogDensity;
     float baseLightLevel;
-    float targetedLightCoeff;
     float fogSpeed;
+    uint enableFog;
 } push;
 
 layout(location = 0) out vec4 outColor;
@@ -65,13 +66,18 @@ float computeFogDensity(vec3 pos) {
 }
 
 void main() {
+    if (push.enableFog == 0u) {
+        outColor = vec4(0.0);
+        return;
+    }
+
     vec2 resolution = vec2(640.0, 360.0);
     vec2 uv = gl_FragCoord.xy / resolution;
 
     vec3 camPos = uparams.camPos.xyz;
     vec3 rayDir = getViewRay(uv);
 
-    vec3 fogColor = vec3(0.6, 0.7, 0.8);
+    //vec3 fogColor = vec3(0.6, 0.7, 0.8);
     //float fogDensity = push.fogDensity;
     int numSteps = 64;
     float maxDist = uparams.farPlane - uparams.nearPlane;
@@ -93,11 +99,11 @@ void main() {
         // експоненційне згасання від відстані до джерела
         float attenuation = exp(-0.05 * distToLight);
 
-        float phase = max(dot(rayDir, lightDir), 0.0);
+        //float phase = max(dot(rayDir, lightDir), 0.0);
         //phase = pow(phase, 0.5); // м’яке падіння для god rays
         //if (phase < 0.9999) phase = 0.0;
 
-        vec3 contrib = transmittance * shadowFactor * fogColor * attenuation * (push.baseLightLevel + phase * push.targetedLightCoeff) * stepSize;
+        vec3 contrib = transmittance * shadowFactor * push.fogColor.xyz * attenuation * push.baseLightLevel * stepSize;
         accumLight += contrib;
         accumLight = min(accumLight, vec3(0.4));
 

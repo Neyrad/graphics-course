@@ -722,12 +722,13 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
       struct Params {
         glm::vec4 lightPos;
+        glm::vec4 fogColor;
         float minFogDensity;
         float maxFogDensity;
         float baseLightLevel;
-        float targetedLightCoeff;
         float fogSpeed;
-      } params { glm::vec4(lightPos, 1), minFogDensity, maxFogDensity, baseLightLevel, targetedLightCoeff, fogSpeed };
+        uint32_t enableFog;
+      } params { glm::vec4(lightPos, 1), glm::vec4(fogColor, 1.0f), minFogDensity, maxFogDensity, baseLightLevel, fogSpeed, (enableFog ? 1u : 0u) };
 
       cmd_buf.pushConstants(fogPipeline.getVkPipelineLayout(),
                             vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
@@ -824,11 +825,17 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 void WorldRenderer::drawGui()
 {
   ImGui::Begin("Simple render settings");
+  ImGui::Checkbox("Fog", &enableFog);
+
   ImGui::SliderFloat("minFogDensity", &minFogDensity, 0.0f, 5.0f);
   ImGui::SliderFloat("maxFogDensity", &maxFogDensity, 0.0f, 5.0f);
   ImGui::SliderFloat("baseLightLevel", &baseLightLevel, -0.2f, 0.2f);
-  ImGui::SliderFloat("targetedLightCoeff", &targetedLightCoeff, -10.0f, 10.0f);
+  //ImGui::SliderFloat("targetedLightCoeff", &targetedLightCoeff, -10.0f, 10.0f);
   ImGui::SliderFloat("fogSpeed", &fogSpeed, -10.0f, 10.0f);
+
+  float color[3] = {fogColor.r, fogColor.g, fogColor.b};
+  ImGui::ColorEdit3("Fog Color", color);
+  fogColor = {color[0], color[1], color[2]};
 /*
   ImGui::SliderFloat("halfSize", &halfSize, -40.f, 40.f);
   ImGui::SliderFloat("nearPlane", &nearPlane, -40.f, 40.f);
