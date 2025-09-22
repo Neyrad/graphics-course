@@ -12,6 +12,8 @@ target_link_libraries(fog
 target_add_shaders(fog
   shaders/fog.vert
   shaders/fog.frag
+  shaders/halfFog.vert
+  shaders/halfFog.frag
   shaders/shadow.vert
   shaders/shadow.frag
   shaders/texture.frag

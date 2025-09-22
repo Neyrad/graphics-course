@@ -60,6 +60,8 @@ private:
     .invViewProj = {},
     .view = {},
     .camPos = {},
+    .nearPlane = {},
+    .farPlane = {},
   };
 
   struct Particle {
@@ -133,4 +135,7 @@ private:
   float halfSize = 5.0f;
   float nearPlane = 0.0f; // ближня межа, можна трохи більше, щоб включити все
   float farPlane  = 32.0f;  // дальня межа
+
+  etna::Image imageHalfRes;
+  etna::GraphicsPipeline fogPipeline{};
 };

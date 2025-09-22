@@ -184,6 +184,11 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
   //model = glm::translate(model, glm::vec3(0, 1, 0)); // підняти куб на 1 по Y
   //model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0)); // повернути
 
+  imageHalfRes = ctx.createImage(etna::Image::CreateInfo{
+    .extent = vk::Extent3D{resolution.x / 2, resolution.y / 2, 1},
+    .name = "half_res_fog",
+    .format = vk::Format::eR16G16B16A16Sfloat,
+    .imageUsage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment });
 }
 
 void WorldRenderer::loadShaders()
@@ -228,6 +233,11 @@ void WorldRenderer::loadShaders()
     "shadow",
     {FOG_SHADERS_ROOT "shadow.frag.spv",
     FOG_SHADERS_ROOT "shadow.vert.spv"});
+
+  etna::create_program(
+    "fog_half_res",
+    {FOG_SHADERS_ROOT "halfFog.frag.spv",
+    FOG_SHADERS_ROOT "halfFog.vert.spv"});
 
     ////std::cout << "load shaders SUCCESS" << std::endl;
 }
@@ -311,6 +321,16 @@ void WorldRenderer::setupPipelines(vk::Format swapchain_format)
   );
 
   //std::cout << "setup pipelines SUCCESS" << std::endl;
+  fogPipeline = etna::get_context().getPipelineManager().createGraphicsPipeline(
+    "fog_half_res",
+    etna::GraphicsPipeline::CreateInfo{
+      .fragmentShaderOutput =
+      {
+        .colorAttachmentFormats = {swapchain_format},
+        .depthAttachmentFormat = vk::Format::eD32Sfloat,
+      }
+    }
+  );
 }
 
 void WorldRenderer::update(FramePacket& FP)
@@ -352,8 +372,9 @@ void WorldRenderer::update(FramePacket& FP)
       nearPlane, farPlane    // near, far
   );
 
-
   uniformParams.lightVP = lightProj * lightView;
+  uniformParams.nearPlane = nearPlane;
+  uniformParams.farPlane = farPlane;
 
   std::memcpy(constants.data(), &uniformParams, sizeof(uniformParams));
   //std::cout << "update success" << std::endl;
@@ -630,43 +651,49 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                             vk::ShaderStageFlagBits::eVertex, 0, sizeof(params), &params);
       cmd_buf.draw(vertices.size(), 1, 0, 0);
     }
-
-    //std::cout << "render world pass 0" << std::endl;
-    //vk::DeviceSize offsets[] = {0};
-    //auto vkVertexBuffer = vertexBuffer.get();
-    //std::cout << "render world pass 0" << std::endl;
-    //cmd_buf.bindVertexBuffers(0, 1, &vkVertexBuffer, offsets);
-    //std::cout << "render world pass 0" << std::endl;
-    //std::cout << "render world pass 0" << std::endl;
   }
+    // --- PASS 1: fog ---
 
+    etna::set_state(cmd_buf, imageHalfRes.get(),
+      vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+      vk::AccessFlagBits2::eColorAttachmentWrite,
+      vk::ImageLayout::eColorAttachmentOptimal,
+      vk::ImageAspectFlagBits::eColor);
 
-  //std::cout << "render world pass 0 success" << std::endl;
-/*
-  // --- PASS 1: render to offscreen 'image' ---
-  etna::set_state(cmd_buf, image.get(),
-                  vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-                  vk::AccessFlagBits2::eColorAttachmentWrite,
-                  vk::ImageLayout::eColorAttachmentOptimal,
-                  vk::ImageAspectFlagBits::eColor);
-  etna::flush_barriers(cmd_buf);
+    etna::flush_barriers(cmd_buf);
 
-  {
-    etna::RenderTargetState rt1(
-      cmd_buf,
-      {{0, 0}, {resolution.x, resolution.y}},
-      {{ .image = image.get(), .view = image.getView({})}},
-      {} );
+    {
+      etna::RenderTargetState rtFog(
+        cmd_buf,
+        {{0, 0}, {resolution.x / 2, resolution.y / 2}},
+        {{ .image = imageHalfRes.get(), .view = imageHalfRes.getView({}) }},
+        {}
+      );
 
-    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, texturePipeline.getVkPipeline());
+      auto fogInfo = etna::get_shader_program("fog_half_res");
+      auto set = etna::create_descriptor_set(
+        fogInfo.getDescriptorLayoutId(0),
+        cmd_buf,
+        {
+          etna::Binding{ 2, constants.genBinding() },
+          etna::Binding{ 3, shadowMap.genBinding(shadowSampler.get(),
+                            vk::ImageLayout::eShaderReadOnlyOptimal) },
+        });
 
-    struct Params { glm::uvec2 res; float time; float scale; } params{resolution, time, scale};
-    cmd_buf.pushConstants(texturePipeline.getVkPipelineLayout(),
-                          vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
+      vk::DescriptorSet vkSet = set.getVkSet();
+      cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, fogPipeline.getVkPipeline());
+      cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                fogPipeline.getVkPipelineLayout(), 0, 1, &vkSet, 0, nullptr);
 
-    cmd_buf.draw(3, 1, 0, 0);
-  }
-*/
+      struct Params {
+        glm::vec4 lightPos;
+      } params { glm::vec4(lightPos, 1) };
+
+      cmd_buf.pushConstants(fogPipeline.getVkPipelineLayout(),
+                            vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
+      cmd_buf.draw(3, 1, 0, 0);
+    }
+
   etna::set_state(cmd_buf, image.get(),
                   vk::PipelineStageFlagBits2::eFragmentShader,
                   vk::AccessFlagBits2::eShaderRead,
@@ -702,6 +729,9 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
 
         // binding 4 -> vertex buffer
         etna::Binding{ 4, vertexBuffer.genBinding() },
+
+        // binding 5 -> for half res
+        etna::Binding{ 5, imageHalfRes.genBinding(shadowSampler.get(), vk::ImageLayout::eShaderReadOnlyOptimal) }
       });
 
     vk::DescriptorSet vkSet = set.getVkSet();
@@ -827,6 +857,10 @@ void WorldRenderer::drawGui()
         float color[3] = {emitters[i].particleColor.r, emitters[i].particleColor.g, emitters[i].particleColor.b};
         ImGui::ColorEdit3("Particle Color", color);
         emitters[i].particleColor = {color[0], color[1], color[2]};
+
+        if (ImGui::Button("Teleport to lightPos")) {
+            emitters[i].position = {lightPos.x, lightPos.y, lightPos.z};
+        }
 
         if (ImGui::Button("Remove Emitter")) {
             emitters.erase(emitters.begin() + i);

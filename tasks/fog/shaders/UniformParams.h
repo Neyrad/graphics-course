@@ -10,7 +10,8 @@ struct UniformParams
   shader_mat4 invViewProj;
   shader_mat4 view;
   shader_vec4 camPos;
+  float nearPlane;
+  float farPlane;
 };
-
 
 #endif // UNIFORM_PARAMS_H_INCLUDED
