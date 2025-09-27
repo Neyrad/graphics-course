@@ -511,30 +511,30 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                           vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
 
     cmd_buf.draw(3, 1, 0, 0);
-  }
 
-  for (size_t idx : emitterRenderOrder) {
-    auto& emitter = emitters[idx];
-    // --- PARTICLES ---
-    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
+    for (size_t idx : emitterRenderOrder) {
+      auto& emitter = emitters[idx];
+      // --- PARTICLES ---
+      cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
 
-    auto emittersInfo = etna::get_shader_program("emitters");
-    auto emitterSet = etna::create_descriptor_set(
-        emittersInfo.getDescriptorLayoutId(0),
-        cmd_buf,
-        {
-            etna::Binding{ 0, constants.genBinding() },
-            etna::Binding{ 1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding() },
-            etna::Binding{ 5, emitter.indicesBuffer.genBinding() },
-        }
-    );
+      auto emittersInfo = etna::get_shader_program("emitters");
+      auto emitterSet = etna::create_descriptor_set(
+          emittersInfo.getDescriptorLayoutId(0),
+          cmd_buf,
+          {
+              etna::Binding{ 0, constants.genBinding() },
+              etna::Binding{ 1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding() },
+              etna::Binding{ 5, emitter.indicesBuffer.genBinding() },
+          }
+      );
 
-    vk::DescriptorSet emitterVkSet = emitterSet.getVkSet();
-    cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                              emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
+      vk::DescriptorSet emitterVkSet = emitterSet.getVkSet();
+      cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
 
-    cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
-    emitter.useAasInput = !emitter.useAasInput;
+      cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
+      emitter.useAasInput = !emitter.useAasInput;
+    }
   }
 }
 
