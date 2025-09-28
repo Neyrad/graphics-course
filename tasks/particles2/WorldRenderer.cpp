@@ -467,15 +467,16 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
     cmd_buf.draw(3, 1, 0, 0);
   }
 
-  etna::set_state(cmd_buf, image.get(),
+  // --- PASS 2: render to swapchain, sample 'image' ---
+  {
+    etna::set_state(cmd_buf, target_image,
                   vk::PipelineStageFlagBits2::eFragmentShader,
                   vk::AccessFlagBits2::eShaderRead,
                   vk::ImageLayout::eShaderReadOnlyOptimal,
                   vk::ImageAspectFlagBits::eColor);
-  etna::flush_barriers(cmd_buf);
+  
+    etna::flush_barriers(cmd_buf);
 
-  // --- PASS 2: render to swapchain, sample 'image' ---
-  {
     etna::RenderTargetState rt2(
       cmd_buf,
       {{0, 0}, {resolution.x, resolution.y}},
