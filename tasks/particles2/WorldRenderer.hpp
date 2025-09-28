@@ -1,5 +1,6 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <etna/Image.hpp>
 #include <etna/Sampler.hpp>
 #include <etna/Buffer.hpp>

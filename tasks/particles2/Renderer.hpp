@@ -1,5 +1,6 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <etna/GlobalContext.hpp>
 #include <etna/PerFrameCmdMgr.hpp>
 #include <glm/glm.hpp>
