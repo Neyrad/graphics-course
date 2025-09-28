@@ -1,5 +1,6 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <etna/Image.hpp>
 #include <etna/Sampler.hpp>
 #include <etna/Buffer.hpp>
@@ -101,10 +102,6 @@ private:
 
   std::vector<Emitter> emitters;
   std::vector<size_t> emitterRenderOrder;
-
-  etna::Image image;
-  etna::Sampler textureSampler;
-  etna::Image texture;
 
   etna::GraphicsPipeline texturePipeline{};
   etna::GraphicsPipeline graphicsPipeline{};

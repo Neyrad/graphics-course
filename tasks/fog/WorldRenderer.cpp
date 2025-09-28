@@ -31,50 +31,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 
   auto& ctx = etna::get_context();
 
-  textureSampler = etna::Sampler{etna::Sampler::CreateInfo{
-    .addressMode = vk::SamplerAddressMode::eMirroredRepeat, .name = "textureSampler"}};
-
-  image = ctx.createImage(etna::Image::CreateInfo{
-    .extent = vk::Extent3D{resolution.x, resolution.y, 1},
-    .name = "texture_image",
-    .format = vk::Format::eB8G8R8A8Srgb,
-    .imageUsage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment});
-
-  int texWidth, texHeight, texChannels;
-
-  stbi_uc* pixels = stbi_load(
-    GRAPHICS_COURSE_RESOURCES_ROOT "/textures/test_tex_1.png",
-    &texWidth,
-    &texHeight,
-    &texChannels,
-    STBI_rgb_alpha);
-
-  VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-  if (!pixels)
-  {
-    throw std::runtime_error("failed to load texture image!");
-  }
-
-  texture = etna::get_context().createImage(etna::Image::CreateInfo{
-    .extent = vk::Extent3D{static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1},
-    .name = "texture",
-    .format = vk::Format::eR8G8B8A8Srgb,
-    .imageUsage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst});
-  
-  std::unique_ptr<etna::OneShotCmdMgr> oneShotCmdMgr = etna::get_context().createOneShotCmdMgr();
-
-  auto blockingTransferHelper = etna::BlockingTransferHelper{
-    etna::BlockingTransferHelper::CreateInfo{.stagingSize = static_cast<std::uint64_t>(imageSize)}};
-  blockingTransferHelper.uploadImage(
-    *oneShotCmdMgr,
-    texture,
-    0,
-    0,
-    std::span<const std::byte>(reinterpret_cast<const std::byte*>(pixels), imageSize));
-
-  stbi_image_free(pixels);
-
   constants = ctx.createBuffer(etna::Buffer::CreateInfo{
     .size = sizeof(UniformParams),
     .bufferUsage = vk::BufferUsageFlagBits::eUniformBuffer,
@@ -229,11 +185,6 @@ void WorldRenderer::allocateResources(glm::uvec2 swapchain_resolution)
 
 void WorldRenderer::loadShaders()
 {
-  etna::create_program(
-    "texture",
-    {FOG_SHADERS_ROOT "texture.frag.spv",
-     FOG_SHADERS_ROOT "fog.vert.spv"});
-
   etna::create_program(
     "fog",
     {FOG_SHADERS_ROOT "fog.frag.spv", FOG_SHADERS_ROOT "fog.vert.spv"});
@@ -724,15 +675,17 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
       cmd_buf.draw(3, 1, 0, 0);
     }
 
-  etna::set_state(cmd_buf, image.get(),
+ 
+  // --- PASS 2: render to swapchain, sample 'image' ---
+  {
+    etna::set_state(cmd_buf, target_image,
                   vk::PipelineStageFlagBits2::eFragmentShader,
                   vk::AccessFlagBits2::eShaderRead,
                   vk::ImageLayout::eShaderReadOnlyOptimal,
                   vk::ImageAspectFlagBits::eColor);
-  etna::flush_barriers(cmd_buf);
+  
+    etna::flush_barriers(cmd_buf);
 
-  // --- PASS 2: render to swapchain, sample 'image' ---
-  {
     etna::RenderTargetState rt2(
       cmd_buf,
       {{0, 0}, {resolution.x, resolution.y}},
@@ -773,30 +726,30 @@ void WorldRenderer::renderWorld(vk::CommandBuffer cmd_buf,
                             vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(params), &params);
       cmd_buf.draw(vertices.size(), 1, 0, 0);
     }
-  }
 
-  for (size_t idx : emitterRenderOrder) {
-    auto& emitter = emitters[idx];
-    // --- PARTICLES ---
-    cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
+    for (size_t idx : emitterRenderOrder) {
+      auto& emitter = emitters[idx];
+      // --- PARTICLES ---
+      cmd_buf.bindPipeline(vk::PipelineBindPoint::eGraphics, emittersPipeline.getVkPipeline());
 
-    auto emittersInfo = etna::get_shader_program("emitters");
-    auto emitterSet = etna::create_descriptor_set(
-        emittersInfo.getDescriptorLayoutId(0),
-        cmd_buf,
-        {
-            etna::Binding{ 0, constants.genBinding() },
-            etna::Binding{ 1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding() },
-            etna::Binding{ 5, emitter.indicesBuffer.genBinding() },
-        }
-    );
+      auto emittersInfo = etna::get_shader_program("emitters");
+      auto emitterSet = etna::create_descriptor_set(
+          emittersInfo.getDescriptorLayoutId(0),
+          cmd_buf,
+          {
+              etna::Binding{ 0, constants.genBinding() },
+              etna::Binding{ 1, (emitter.useAasInput ? emitter.particleBufferB : emitter.particleBufferA).genBinding() },
+              etna::Binding{ 5, emitter.indicesBuffer.genBinding() },
+          }
+      );
 
-    vk::DescriptorSet emitterVkSet = emitterSet.getVkSet();
-    cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                              emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
+      vk::DescriptorSet emitterVkSet = emitterSet.getVkSet();
+      cmd_buf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                emittersPipeline.getVkPipelineLayout(), 0, 1, &emitterVkSet, 0, nullptr);
 
-    cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
-    emitter.useAasInput = !emitter.useAasInput;
+      cmd_buf.drawIndirect(emitter.indirectBuffer.get(), 0, 1, sizeof(VkDrawIndirectCommand));
+      emitter.useAasInput = !emitter.useAasInput;
+    }
   }
 }
 
